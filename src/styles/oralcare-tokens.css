@@ -1,0 +1,290 @@
+/* Design tokens copied once from oralcare.se (src/app/globals.css at commit 79625c8,
+   2026-10-31): the blocks @theme inline, :root and @utility focus-ring. The dark
+   theme is not included, and the em dashes in comments are replaced, since this
+   repo has none. After the copy there is no link to oralcare.se, and the tokens
+   are updated here by hand when needed (plan 4.14). */
+
+@theme inline {
+  --font-sans: var(--font-inter-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  /* Heading line-heights: the Figma heading styles use AUTO line-height (the
+     style metadata's "lineHeight: 100" is how auto serializes, not 100%), set
+     in Inter whose natural leading is ~1.21 (48px → 58px). We render Inter
+     too, but the ratio stays pinned so section heights don't drift if the
+     rendered font ever changes. */
+  --text-h1: 64px;
+  --text-h1--line-height: 1.21;
+  --text-h1--font-weight: 600;
+  --text-h1--letter-spacing: 0;
+  --text-h2: 48px;
+  --text-h2--line-height: 1.21;
+  --text-h2--font-weight: 600;
+  --text-h2--letter-spacing: 0;
+  --text-h3: 32px;
+  --text-h3--line-height: 1.21;
+  --text-h3--font-weight: 700;
+  --text-h3--letter-spacing: 0;
+  --text-h4: 24px;
+  --text-h4--line-height: 1.21;
+  --text-h4--font-weight: 400;
+  --text-h4--letter-spacing: 0;
+  --text-h5: 24px;
+  --text-h5--line-height: 1.21;
+  --text-h5--font-weight: 600;
+  --text-h5--letter-spacing: 0;
+
+  --text-paragraph-hero: 20px;
+  --text-paragraph-hero--line-height: 28px;
+  --text-paragraph-hero--font-weight: 400;
+  --text-paragraph-hero--letter-spacing: 0;
+  --text-paragraph-large: 18px;
+  --text-paragraph-large--line-height: 27px;
+  --text-paragraph-large--font-weight: 400;
+  --text-paragraph-large--letter-spacing: 0;
+  --text-paragraph-regular: 16px;
+  --text-paragraph-regular--line-height: 24px;
+  --text-paragraph-regular--font-weight: 400;
+  --text-paragraph-regular--letter-spacing: 0;
+  --text-paragraph-small: 14px;
+  --text-paragraph-small--line-height: 20px;
+  --text-paragraph-small--font-weight: 400;
+  --text-paragraph-small--letter-spacing: 0;
+  --text-paragraph-xs: 13px;
+  --text-paragraph-xs--line-height: 18px;
+  --text-paragraph-xs--font-weight: 400;
+  --text-paragraph-xs--letter-spacing: 0;
+  --text-paragraph-mini: 12px;
+  --text-paragraph-mini--line-height: 16px;
+  --text-paragraph-mini--font-weight: 400;
+  --text-paragraph-mini--letter-spacing: 0;
+  --text-paragraph-nano: 11px;
+  --text-paragraph-nano--line-height: 14px;
+  --text-paragraph-nano--font-weight: 400;
+  --text-paragraph-nano--letter-spacing: 0;
+
+  --text-caption: 14px;
+  --text-caption--line-height: 21px;
+  --text-caption--font-weight: 400;
+  --text-caption--letter-spacing: 1.5px;
+  --text-mono: 16px;
+  --text-mono--line-height: 24px;
+  --text-mono--font-weight: 400;
+  --text-mono--letter-spacing: 0;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  --spacing-3xs: 2px;
+  --spacing-2xs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 40px;
+  --spacing-4xl: 48px;
+  --spacing-5xl: 64px;
+  --spacing-6xl: 80px;
+  --spacing-7xl: 96px;
+  --spacing-8xl: 112px;
+  --spacing-9xl: 128px;
+  --spacing-10xl: 144px;
+
+  --shadow-2xs: 0 1px 0 0 #0000000d;
+  --shadow-xs: 0 1px 2px 0 #0000000d;
+  --shadow-sm: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
+  --shadow-md: 0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a;
+  --shadow-lg: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
+  --shadow-xl: 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;
+  --shadow-2xl: 0 25px 50px -12px #0000001a;
+  /* The shared sticky-surface shadow, cast toward the content the surface
+     floats over: `sticky` casts up (bottom-pinned CTA rows, the mobile map
+     sheet), `sticky-top` casts down (the navbar). Same blur/strength so
+     every pinned surface reads the same. */
+  --shadow-sticky: 0 -4px 16px 0 #00000026;
+  --shadow-sticky-top: 0 4px 16px 0 #00000026;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-alt: var(--foreground-alt);
+  --color-body-background: var(--body-background);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-0: var(--accent-0);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-mid-alt: var(--mid-alt);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-border: var(--destructive-border);
+  --color-destructive-text: var(--destructive-text);
+  --color-destructive-subtle: var(--destructive-subtle);
+
+  --color-ghost: var(--ghost);
+  --color-ghost-foreground: var(--ghost-foreground);
+  --color-ghost-hover: var(--ghost-hover);
+
+  --color-outline: var(--outline);
+  --color-outline-hover: var(--outline-hover);
+  --color-outline-active: var(--outline-active);
+
+  --color-border: var(--border);
+  --color-border-0: var(--border-0);
+  --color-border-1: var(--border-1);
+  --color-border-3: var(--border-3);
+  --color-border-4: var(--border-4);
+  --color-border-5: var(--border-5);
+
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-error: var(--ring-error);
+  --color-backdrop: var(--backdrop);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-muted: var(--sidebar-muted);
+
+  /* OC brand palette (Figma "Oral Care Kontiki" variable mode). Static,
+     not theme-switched, so defined here rather than via :root vars. */
+  --color-oc-green-50: #f9faf9;
+  --color-oc-green-100: #f4f5f4;
+  --color-oc-green-200: #e5e8e3;
+  --color-oc-green-300: #d2d8cf;
+  --color-oc-green-400: #a1ad9a;
+  --color-oc-green-500: #6f7d67;
+  --color-oc-green-600: #4e5b4a;
+  --color-oc-green-700: #3c4838;
+  --color-oc-green-950: #0a0d08;
+  --color-oc-orange-50: #fff7ed;
+  --color-oc-orange-100: #feedd6;
+  --color-oc-orange-200: #fcd7ac;
+  --color-oc-orange-400: #f7923f;
+  --color-oc-gray-100: #f5f5f5;
+  --color-oc-gray-200: #ebebeb;
+  --color-oc-gray-300: #dcdcdc;
+  --color-oc-neutral-700: #4a4a4a;
+  /* Brand green: availability indicators ("Lediga tider"), success accents.
+     NOT --primary: Kontiki primary is black; this is the standalone green. */
+  --color-brand-green: #11824d;
+}
+
+/* Values from the Figma "Oral Care Kontiki" variable mode (2026-07-09).
+   Tokens with no Kontiki definition yet keep their previous neutrals,
+   flagged for the designer: card, popover, ring, hover shades, backdrop,
+   destructive variants, accent-0/2/3, border-0..4, dark mode. */
+:root {
+  --background: #fafafa;
+  --foreground: #000000;
+  --foreground-alt: #404040;
+  --body-background: #fafafa;
+
+  --card: #ffffff;
+  --card-foreground: #000000;
+
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --primary-hover: #404040;
+
+  --secondary: #f4f5f4;
+  --secondary-foreground: #000000;
+  --secondary-hover: #fafafa;
+
+  --accent: #feedd6;
+  --accent-foreground: #7a2e14;
+  --accent-0: #fafafa;
+  --accent-2: #e5e5e5;
+  --accent-3: #d4d4d4;
+
+  --muted: #e5e8e3;
+  --muted-foreground: #6b6b6b;
+  --mid-alt: #6b6b6b;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --destructive-border: #ef4444;
+  --destructive-text: #dc2626;
+  --destructive-subtle: #fef2f2;
+
+  --ghost: #ffffff00;
+  --ghost-foreground: #404040;
+  --ghost-hover: #0000000d;
+
+  --outline: #ffffff1a;
+  --outline-hover: #00000008;
+  --outline-active: #0000000d;
+
+  --border: #ebebeb;
+  --border-0: #fafafa;
+  --border-1: #f5f5f5;
+  --border-3: #d4d4d4;
+  --border-4: #a3a3a3;
+  --border-5: #919191;
+
+  --input: #ffffff;
+  --ring: #d4d4d4;
+  --ring-error: #fca5a5;
+  --backdrop: #00000099;
+
+  --sidebar: #a1ad9a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-primary: #171717;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #d4d4d4;
+  --sidebar-muted: #737373;
+}
+
+/* The one focus indicator: a 2px ring-colored outline floating 2px outside
+   the element (the Kontiki treatment). Use this utility on every interactive
+   element instead of per-component focus classes. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}

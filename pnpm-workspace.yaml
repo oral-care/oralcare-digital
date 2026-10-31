@@ -1,0 +1,25 @@
+allowBuilds:
+  # Only creates the symlinks the embedded Postgres binaries for tests need
+  # (scripts/hydrate-symlinks.js, reviewed 2026-10-31).
+  "@embedded-postgres/darwin-arm64": true
+  "@embedded-postgres/linux-x64": true
+  "@parcel/watcher": true
+  "@swc/core": true
+  esbuild: true
+  unrs-resolver: true
+# Dependency cooldown: only install package versions published at least
+# 3 days (4320 minutes) ago, as a supply-chain mitigation (ChainDrop/Shai-Hulud
+# class attacks are typically detected and yanked within hours of publish).
+# Applies everywhere pnpm resolves versions, locally and in CI.
+minimumReleaseAge: 4320
+# Narrow exception per the IT directive on expedited Next.js security
+# patches; every other package keeps the cooldown.
+minimumReleaseAgeExclude:
+  - next
+  - "@next/*"
+  - eslint-config-next
+overrides:
+  adm-zip@<0.6.0: ">=0.6.0"
+  decode-uri-component@<=0.4.2: ">=0.5.0"
+  js-yaml@<3.15.2: "^3.15.2"
+  uuid@<11.1.1: "^11.1.1"

@@ -1,0 +1,42 @@
+# dependencies
+/node_modules
+
+# testing
+/coverage
+/playwright-report
+/test-results
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# e-mail previews (pnpm email:preview)
+/.email-preview/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+.pnpm-debug.log*
+
+# env files
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# local tools
+.claude/
+.vscode/
+
+# never in this public repo: the prototype holds example users (plan 13.4)
+/docs/prototype/
+
+# tools downloaded by CI
+/gitleaks
+/gitleaks.tar.gz

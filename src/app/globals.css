@@ -1,0 +1,21 @@
+/* Only imports and the base layer, as in oralcare.se (plan 4.14). Every value
+   comes from the token files. */
+@import "tailwindcss";
+@import "../styles/oralcare-tokens.css";
+@import "../styles/app-tokens.css";
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  html {
+    @apply font-sans;
+  }
+}
