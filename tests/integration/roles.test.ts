@@ -1,6 +1,8 @@
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
+import { REQUIRED_SCHEMA } from "@/lib/db/schema-version";
+
 // For every role, which statements go through and which are refused (plan 15.2).
 
 const urls = inject("databaseUrls");
@@ -157,20 +159,27 @@ describe("the database as a whole", () => {
 
   it("refuses overlapping validity periods", async () => {
     const owner = await as("owner");
+    // Its own clinic, since other test files share the database.
+    const clinic = await owner.query<{ id: number }>(
+      `INSERT INTO core.clinic (country_id) SELECT id FROM core.country WHERE code = 'se' RETURNING id`,
+    );
+    const clinicId = clinic.rows[0]?.id;
     await owner.query(
-      `INSERT INTO core.clinic_name (clinic_id, name, city) VALUES (1, 'Oral Care Test', 'Stockholm')`,
+      `INSERT INTO core.clinic_name (clinic_id, name, city) VALUES ($1, 'Oral Care Test', 'Stockholm')`,
+      [clinicId],
     );
     await expect(
       owner.query(
-        `INSERT INTO core.clinic_name (clinic_id, name, city) VALUES (1, 'Oral Care Test 2', 'Stockholm')`,
+        `INSERT INTO core.clinic_name (clinic_id, name, city) VALUES ($1, 'Oral Care Test 2', 'Stockholm')`,
+        [clinicId],
       ),
     ).rejects.toMatchObject({ code: "23P01" });
   });
 
-  it("starts at schema version 1", async () => {
+  it("is at the schema version the code requires, and still fits the code before it", async () => {
     const owner = await as("owner");
     const result = await owner.query("SELECT schema_version, min_code_schema FROM core.schema_state");
-    expect(result.rows).toEqual([{ schema_version: 1, min_code_schema: 1 }]);
+    expect(result.rows).toEqual([{ schema_version: REQUIRED_SCHEMA, min_code_schema: 1 }]);
   });
 });
 

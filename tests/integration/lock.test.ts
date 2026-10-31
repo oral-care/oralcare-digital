@@ -2,6 +2,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
 import { acquireLock, finishRun, skipIfSchemaMismatch } from "@/jobs/runtime/lock";
+import { REQUIRED_SCHEMA } from "@/lib/db/schema-version";
 
 // The lock in core.job_run, as the collector role uses it (plan 15.2).
 
@@ -71,7 +72,7 @@ describe("acquireLock", () => {
 describe("skipIfSchemaMismatch", () => {
   it("logs a skipped run when the database is older than the code", async () => {
     const request = { job: "lock-test", countryId: 1, point: point(13), isRetry: false, codeVersion: "test" };
-    const result = await skipIfSchemaMismatch(collector, request, 2);
+    const result = await skipIfSchemaMismatch(collector, request, REQUIRED_SCHEMA + 1);
     expect(result.skipped).toBe(true);
     const logged = await owner.query(
       "SELECT status, error_codes FROM core.job_run WHERE job = 'lock-test' AND schedule_point = $1",
@@ -82,6 +83,6 @@ describe("skipIfSchemaMismatch", () => {
 
   it("runs when the database fits", async () => {
     const request = { job: "lock-test", countryId: 1, point: point(15), isRetry: false, codeVersion: "test" };
-    expect((await skipIfSchemaMismatch(collector, request, 1)).skipped).toBe(false);
+    expect((await skipIfSchemaMismatch(collector, request, REQUIRED_SCHEMA)).skipped).toBe(false);
   });
 });

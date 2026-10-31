@@ -1,6 +1,6 @@
 // The schema version this code needs (plan 7). Raise it in the same change as
 // a migration that sets core.schema_state.schema_version to the same number.
-export const REQUIRED_SCHEMA = 1;
+export const REQUIRED_SCHEMA = 2;
 
 export type SchemaState = { schemaVersion: number; minCodeSchema: number };
 

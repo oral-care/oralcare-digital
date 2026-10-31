@@ -1,0 +1,758 @@
+{
+  "data": [
+    {
+      "id": "17524",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9001"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4390"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25403"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17525",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9002"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4388"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "6448"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25407"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17528",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9007"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4389"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25405"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "25407",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9004"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "8358"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "9995"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25404"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17530",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9003"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4387"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "6447"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25406"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17527",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9005"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "6099"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "74262",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9006"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "30557"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17488",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9008"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    },
+    {
+      "id": "73575",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9009"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    },
+    {
+      "id": "17506",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9010"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    },
+    {
+      "id": "17507",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9011"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    },
+    {
+      "id": "17509",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9012"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    },
+    {
+      "id": "51166",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9013"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    },
+    {
+      "id": "61186",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9014"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": []
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "id": "1",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Basundersökning av tandläkare"
+      }
+    },
+    {
+      "id": "138",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Implantatkonsultation"
+      }
+    },
+    {
+      "id": "23",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Akut tandvårdsbehandling"
+      }
+    },
+    {
+      "id": "11",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Tandhygienistbehandling"
+      }
+    },
+    {
+      "id": "9",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Tandblekning"
+      }
+    },
+    {
+      "id": "4390",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "25403",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "4388",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "6448",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "23"
+          }
+        }
+      }
+    },
+    {
+      "id": "25407",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "4389",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "11"
+          }
+        }
+      }
+    },
+    {
+      "id": "25405",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "9"
+          }
+        }
+      }
+    },
+    {
+      "id": "8358",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "9995",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "23"
+          }
+        }
+      }
+    },
+    {
+      "id": "25404",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "4387",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "6447",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "23"
+          }
+        }
+      }
+    },
+    {
+      "id": "25406",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "6099",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "30557",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "9001",
+      "type": "muntra_caregiver",
+      "attributes": {
+        "first_name": "Test",
+        "last_name": "Person",
+        "professional_statement": "Fake statement.",
+        "overall_rating": 4.9
+      }
+    },
+    {
+      "id": "2528",
+      "type": "muntra_clinic",
+      "attributes": {
+        "clinic_name": "Test clinic",
+        "clinic_phone_number": "+46 00 000 00 00",
+        "clinic_email_address": "clinic@example.com"
+      }
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "total": 14,
+      "count": 14,
+      "per_page": 100,
+      "current_page": 1,
+      "total_pages": 1
+    }
+  },
+  "links": {
+    "self": "http://api.muntra.com/api/muntra-caregiver-at-locations?page=1",
+    "first": "http://api.muntra.com/api/muntra-caregiver-at-locations?page=1",
+    "last": "http://api.muntra.com/api/muntra-caregiver-at-locations?page=1"
+  }
+}
