@@ -126,14 +126,15 @@ jobs:
       - name: Install with the locked lockfile
         run: pnpm install --frozen-lockfile
 
-      - name: Deploy, wait for READY and check that the domain serves it
+      - name: Deploy and check that the domain serves the new deployment
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           # The commit id goes in as CODE_VERSION, since Vercel doesn't set it for CLI deploys.
           url=$(pnpm exec vercel deploy --prod --yes --token "$VERCEL_TOKEN" --env CODE_VERSION="${GITHUB_SHA}")
+          # vercel deploy waits until the deployment is ready and aliased; the API
+          # check below confirms READY and that the domain serves it.
           echo "Deployed ${url}."
-          pnpm exec vercel inspect "$url" --wait --timeout 10m --token "$VERCEL_TOKEN" > /dev/null
           api="https://api.vercel.com/v13/deployments"
           new_id=$(curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" "$api/${url#https://}?teamId=${VERCEL_ORG_ID}" | jq -r '.id + " " + .readyState')
           host="${APP_URL#https://}"
