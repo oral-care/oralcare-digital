@@ -1,6 +1,6 @@
 # Oral Care Digital: byggspecifikation
 
-Version 6.1, 2026-10-31. Ägare: Digital, Oral Care Group. Status: för godkännande. Inget är byggt. Dokumentet innehåller inga personuppgifter, eftersom repot är publikt i början.
+Version 6.2, 2026-10-31. Ägare: Digital, Oral Care Group. Status: för godkännande. Inget är byggt. Dokumentet innehåller inga personuppgifter, eftersom repot är publikt i början.
 
 Det här dokumentet beskriver exakt allt appen ska göra: sidor, regler, insamling, jobb, mejl, databas, inloggning, säkerhet, kodstruktur, tester, inställningar och steg. Utseendet följer prototypen, som finns lokalt (avsnitt 13.4). Prototypen är bara underlag för utseende och innehåll. Koden byggs från grunden.
 
@@ -411,15 +411,16 @@ Varje mätning gäller en marknad. Routen är `/api/cron/availability/{marknad}`
 - **Svar från oralcare.se:** 200 ger ett värde. 404 betyder att behandlingen har dragits tillbaka, men bara om den också saknas i bokningsmenyn i samma mätning. Då larmar det. Annars blir värdet "Could not be measured", eftersom en 404 kan komma under en driftsättning hos Impact. 429, 5xx och tidsgräns ger omförsök med väntan, sedan "Could not be measured". 400 är ett fel i insamlaren och larmar.
 - **Tolkning:** zod-schemana kräver de fält som används och deras typer. Saknas ett fält eller har det bytt typ blir värdet "Could not be measured" och larmet Nytt format går. Nya fält ignoreras och noteras bara i körloggen, så att ett tillägg hos källan aldrig stoppar mätningen.
 - **Muntra:** når svaret ett sidtak räknas mätningen som misslyckad, aldrig som avkortad. Fönster längre än 30 dagar delas, eftersom Muntra avvisar 31 dagar eller mer.
-- **Behandling till Muntra:** en tabell per klinik och behandling med Muntras behandlings-id. Startvärdet är nyckelns suffix, och tabellen kompletteras från `treatmentEprId` i oralcare.se:s tider.
+- **Behandling till Muntra:** en tabell per klinik och behandling med Muntras behandlings-id, ett eller flera. Startvärdet är nyckelns suffix, och tabellen kompletteras från `treatmentEprId` i oralcare.se:s tider. Muntra tillfrågas för vart och ett av id:na.
 - **Matchning av tider:** klinik, Muntra-behandling, Muntras behandlar-id och starttid. Behandlar-id används bara under mätningen och sparas aldrig.
 
 ### 6.3 Tidsfönster
 
-- Båda källorna får samma fönster. `from` är anropstid plus L plus 5 minuter, avrundat uppåt till 5 minuter, plus 5 minuter. L är oralcare.se:s minsta framförhållning vid bokning, som inte publiceras. Den mäts som det minsta observerade avståndet mellan anropstid och första tid på oralcare.se under de senaste 7 dygnen, och sparas som ett versionerat inställningsvärde. `to` är `from` plus 30 dagar, högst `maxLeadDays`.
+- oralcare.se tillfrågas från mätningens start, som bokningsflödet, och börjar själv vid sin egen gräns. Patientvyns tider (7, 14 och 30 dagar och första lediga tid) räknas på allt oralcare.se visar.
+- Jämförelsen görs över samma fönster för båda källorna, och Muntra tillfrågas bara över det. `from` är anropstid plus L plus 5 minuter, avrundat uppåt till 5 minuter, plus 5 minuter. L är oralcare.se:s minsta framförhållning vid bokning, som inte publiceras. Den räknas fram vid varje mätning ur de sparade mätningarna: det minsta observerade avståndet mellan anropstid och första tid på oralcare.se under de senaste 7 dygnen, minus 5 minuter. Den är minst 20 minuter (oralcare.se:s standard) och högst 180. `to` är `from` plus 30 dagar, högst `maxLeadDays`.
 - Ingen tid på oralcare.se får börja före gränsen. Det kontrolleras vid varje mätning.
 - Tider som bara finns i Muntra under fönstrets första 2 timmar, på minst 3 kliniker i samma mätning, är en avvikelse i fönstret. Den larmar och räknas inte som slots not online.
-- Visar oralcare.se en tid före fönstrets början är det ett fel i insamlaren, och det larmar.
+- Visar oralcare.se en tid före anropstiden är det ett fel i insamlaren, och det larmar.
 
 ### 6.4 Status per mätning
 
@@ -444,7 +445,7 @@ Sparas som fakta, utan bedömning. Används som markeringar i graferna, i larm o
 | oralcare.se | Gränsen för hur långt fram man kan boka ändras                                 |
 | Muntra      | En klinik får eller tappar en behandling aktiverad                             |
 
-Varje ändring sparar värdet före och efter, mellan vilka mätningar den skedde, och hur många tider Muntra hade då. En borttagen behandling ger "Not offered", aldrig 0. Inget tas bort: en klinik som försvinner från oralcare.se får ett slutdatum och mäts vidare i Muntra.
+Varje ändring sparar värdet före och efter, mellan vilka mätningar den skedde, och hur många tider Muntra hade då. En borttagen behandling ger "Not offered", aldrig 0. Inget tas bort: en klinik som försvinner från oralcare.se får ett slutdatum på sitt oralcare.se-id och mäts vidare i Muntra. Den första mätningen fyller bara registret och ger inga ändringar. Ändringar i Muntras lista räknas bara mot en tidigare läsning av listan.
 
 ### 6.6 Last och hänsyn
 
@@ -521,7 +522,7 @@ Larmen samlas. En mätning som ger nya larm skickar **ett** mejl med alla, ett l
 | Bokningsgräns ändrad      | `maxLeadDays` har ändrats                                                                       | oralcare.se now takes bookings {N} days ahead                                                   | It was {N} days.                                                                                     |
 | Fönsteravvikelse          | Muntra har tider under fönstrets första 2 timmar som oralcare.se saknar, på minst 3 kliniker    | Muntra shows early slots that oralcare.se doesn't                                               | {N} clinics have slots in Muntra in the next 2 hours that oralcare.se doesn't show.                  |
 | Nytt format               | Ett svar från oralcare.se eller Muntra saknar ett fält eller har bytt typ                       | {källa} changed its data format                                                                 | Field {sökväg}: expected {typ}, got {typ}, in {N} responses.                                         |
-| Fel i insamlaren          | oralcare.se svarar 400, eller visar en tid före fönstrets början                                | oralcare.se rejected a request from the collector / oralcare.se showed a slot before the window | {behandling} at {klinik}.                                                                            |
+| Fel i insamlaren          | oralcare.se svarar 400, eller visar en tid före anropstiden                                     | oralcare.se rejected a request from the collector / oralcare.se showed a slot before the window | {behandling} at {klinik}.                                                                            |
 
 Texterna är förslag, och "/" skiljer två varianter. Larmen innehåller aldrig personuppgifter, och fältsökvägar och felkoder visas aldrig med värden från källorna.
 
@@ -626,26 +627,26 @@ Visas överst i innehållet när ingen av de två senaste passerade schemapunkte
 
 ### 10.1 `core`, gemensamt för alla moduler
 
-| Tabell                      | Innehåll                                                                                                                                                        |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `country`                   | Marknaden: kod (`se`, `no`, `dk`, `nl`), namn, varumärke och tidszon. Fylls av en migrering från `src/lib/markets.ts`, och ett test kontrollerar att de stämmer |
-| `source_system`             | Källorna och deras roll: `oralcare_se` som webb (`web`) och `muntra` som bokningssystem (`epr`). Senare till exempel bokningssystemet för Norge                 |
-| `market_source`             | Vilka källor varje marknad mäts med                                                                                                                             |
-| `region`                    | Region per marknad, unik på marknad och regionnyckel                                                                                                            |
-| `clinic`                    | Klinik med eget löpnummer och marknad                                                                                                                           |
-| `clinic_name`               | Klinikens namn och stad, med giltighetstid                                                                                                                      |
-| `clinic_external_id`        | Externa id per källa med giltighetstid: Muntra, oralcare.se och senare andra bokningssystem, GA4 och Sanity                                                     |
-| `clinic_region`             | Vilken region kliniken hörde till, och när                                                                                                                      |
-| `treatment`                 | Behandling med eget löpnummer, unik på marknad och webbens nyckel                                                                                               |
-| `treatment_name`            | Behandlingens namn och slug, med giltighetstid                                                                                                                  |
-| `treatment_epr_procedure`   | Bokningssystemets behandlings-id per klinik, behandling och källa, med giltighetstid                                                                            |
-| `clinic_treatment_offering` | Om kliniken går att välja för behandlingen på webben och om den är aktiverad i bokningssystemet, med giltighetstid                                              |
-| `job_run`                   | Körloggen för alla jobb, med marknad där det gäller                                                                                                             |
-| `schema_state`              | En rad med `schema_version` och `min_code_schema`, som migreringarna sätter (avsnitt 7)                                                                         |
-| `config_version`            | Inställningar med historik: framförhållning, incidentgräns, `vercel_cpu_budget`, `vercel_token_expires_on` och nödstoppet `login_paused`                        |
-| `alert`                     | Larm från alla moduler: unik nyckel för händelsen, typ, innehåll utan personuppgifter, status (`pending`, `sent` eller `failed`) och tider                      |
-| `email_send`                | Antal mejl per UTC-dygn och mejltyp, räknat per mottagare. Ökas bara med funktionen `core.reserve_email(typ, antal)`, som nekar när taket är nått (avsnitt 11)  |
-| `app_error`                 | Serverfel i appen: route, felkod, ett hash av meddelandet och tid. Inga personuppgifter                                                                         |
+| Tabell                      | Innehåll                                                                                                                                                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `country`                   | Marknaden: kod (`se`, `no`, `dk`, `nl`), namn, varumärke och tidszon. Fylls av en migrering från `src/lib/markets.ts`, och ett test kontrollerar att de stämmer                                                                                    |
+| `source_system`             | Källorna och deras roll: `oralcare_se` som webb (`web`) och `muntra` som bokningssystem (`epr`). Senare till exempel bokningssystemet för Norge                                                                                                    |
+| `market_source`             | Vilka källor varje marknad mäts med                                                                                                                                                                                                                |
+| `region`                    | Region per marknad, unik på marknad och regionnyckel                                                                                                                                                                                               |
+| `clinic`                    | Klinik med eget löpnummer och marknad                                                                                                                                                                                                              |
+| `clinic_name`               | Klinikens namn och stad, med giltighetstid                                                                                                                                                                                                         |
+| `clinic_external_id`        | Externa id per källa med giltighetstid: Muntra, oralcare.se och senare andra bokningssystem, GA4 och Sanity. Muntras klinik-id (`eprId`) är klinikens nyckel. oralcare.se-id:t är klinikens slug och gäller så länge kliniken finns på oralcare.se |
+| `clinic_region`             | Vilken region kliniken hörde till, och när                                                                                                                                                                                                         |
+| `treatment`                 | Behandling med eget löpnummer, unik på marknad och webbens nyckel                                                                                                                                                                                  |
+| `treatment_name`            | Behandlingens namn och slug, med giltighetstid                                                                                                                                                                                                     |
+| `treatment_epr_procedure`   | Bokningssystemets behandlings-id per klinik, behandling och källa, ett eller flera, med giltighetstid                                                                                                                                              |
+| `clinic_treatment_offering` | Om kliniken går att välja för behandlingen på webben och om den är aktiverad i bokningssystemet, med giltighetstid                                                                                                                                 |
+| `job_run`                   | Körloggen för alla jobb, med marknad där det gäller                                                                                                                                                                                                |
+| `schema_state`              | En rad med `schema_version` och `min_code_schema`, som migreringarna sätter (avsnitt 7)                                                                                                                                                            |
+| `config_version`            | Inställningar med historik: incidentgräns, `vercel_cpu_budget`, `vercel_token_expires_on` och nödstoppet `login_paused`                                                                                                                            |
+| `alert`                     | Larm från alla moduler: unik nyckel för händelsen, typ, innehåll utan personuppgifter, status (`pending`, `sent` eller `failed`) och tider                                                                                                         |
+| `email_send`                | Antal mejl per UTC-dygn och mejltyp, räknat per mottagare. Ökas bara med funktionen `core.reserve_email(typ, antal)`, som nekar när taket är nått (avsnitt 11)                                                                                     |
+| `app_error`                 | Serverfel i appen: route, felkod, ett hash av meddelandet och tid. Inga personuppgifter                                                                                                                                                            |
 
 Giltighetstider får inte överlappa (exclusion constraints med `btree_gist`). Inget tas bort utom det som gallras (avsnitt 10.4).
 
@@ -671,7 +672,7 @@ Giltighetstider får inte överlappa (exclusion constraints med `btree_gist`). I
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `measurement`              | En rad per körning, klinik, behandling och källa: status, orsak när den inte kunde mätas, tider inom 7, 14 och 30 dagar, första lediga tid, antal behandlare med behandlingen aktiverad, fönster och anropstider                       |
 | `comparison`               | En rad per körning, klinik och behandling: `web_slots` (oralcare.se), `epr_slots` (Muntra) och `slots_not_online`                                                                                                                      |
-| `slot_list`                | Alla körningars starttider per klinik, behandling och källa, kompakt som en lista med minuter från fönstrets början, utan behandlare. Sparas 90 dagar                                                                                  |
+| `slot_list`                | Alla körningars starttider per klinik, behandling och källa, kompakt som en lista med minuter från fönstrets början (körningens `window_start`, negativa för oralcare.se:s tider före fönstret), utan behandlare. Sparas 90 dagar      |
 | `daily_value`              | Dagsvärde per dag, klinik, behandling och källa, med Availability, Waiting time, körnings-id, om det är sent, och gränsversion                                                                                                         |
 | `daily_slot_list`          | Dagsvärdets starttider. Sparas                                                                                                                                                                                                         |
 | `status_threshold_version` | Gränserna för statusarna per marknad och behandling, med historik. Nyckeln är webbens behandlingsnyckel, så att gränsen kan sättas innan behandlingen har lästs första gången, och en tom nyckel är standarden för övriga behandlingar |
@@ -699,7 +700,7 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
 
 - **Funktionerna** `core.admin_emails()`, `core.reserve_email(typ, antal)` och `core.prune()` är `security definer`, ägs av migreringsrollen, har `SET search_path = pg_catalog, pg_temp` och använder bara schemakvalificerade namn. `prune()` tar inga argument, räknar själv ut gränserna och tar aldrig bort något nyare än 90 dagar. Rätten att köra dem tas bort från PUBLIC, både som standard (`ALTER DEFAULT PRIVILEGES FOR ROLE oc_migrator REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`) och per funktion, och ges bara till rollerna i tabellen.
 - **Admins adresser till insamlingen:** insamlingen skickar larm men får inte läsa `auth`. `core.admin_emails()` returnerar bara adresserna till admins.
-- **Inställningar** ändras bara med migreringar eller SQL. Insamlingen får inte skriva i `config_version`, utan sparar den uppmätta framförhållningen L genom en egen funktion, `core.record_min_lead(minuter)`, som kommer i steg 2 och bara skriver just den nyckeln.
+- **Inställningar** ändras bara med migreringar eller SQL. Insamlingen får inte skriva i `config_version`. Framförhållningen L sparas inte som inställning, utan räknas fram ur de sparade mätningarna vid varje mätning (avsnitt 6.3).
 - **Databasen:** `REVOKE CONNECT, TEMPORARY ON DATABASE oralcare_digital FROM PUBLIC` och `REVOKE ALL ON SCHEMA public FROM PUBLIC`. `CONNECT` ges till var och en av de fyra rollerna.
 - **Uppsättningen** görs en gång i Neons konsol och SQL Editor. Databasen `oralcare_digital` skapas i konsolen. `scripts/sql/create-roles.sql` körs sedan som ägarrollen `neondb_owner` och skapar de fyra rollerna, rätten för `oc_migrator` att skapa schemana (som den då äger), tillägget `btree_gist` i ett eget schema `extensions`, rollernas tidsgränser och rättigheterna på databasnivå. Rättigheterna på tabellerna ger migreringarna. Rollerna skapas alltid med SQL, aldrig på sidan Roles, eftersom roller som skapas där blir medlemmar i `neon_superuser` och kan läsa och skriva allt.
 - **Lösenorden** har minst 128 bitars slump, skapas i lösenordshanteraren och skrivs bara in i SQL Editor och hemligheterna, aldrig i en fil.

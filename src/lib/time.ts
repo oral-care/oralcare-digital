@@ -23,3 +23,9 @@ export function zonedHour(instant: Date, hour: number, timeZone: string = STOCKH
   const { year, month, day } = zonedParts(instant, timeZone);
   return new Date(new TZDate(year, month, day, hour, 0, 0, 0, timeZone).getTime());
 }
+
+/** The calendar day of an instant in a time zone, as YYYY-MM-DD. */
+export function zonedDay(instant: Date, timeZone: string = STOCKHOLM): string {
+  const { year, month, day } = zonedParts(instant, timeZone);
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}

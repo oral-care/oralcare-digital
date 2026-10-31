@@ -1,0 +1,1276 @@
+{
+  "data": [
+    {
+      "id": "17524",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9001"
+          }
+        },
+        "free_bookable_slots": {
+          "data": [
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "21de9545edaa6e7904ef001a7e99bcbb"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "fc1c7f2b510e445916d84f4e27c06af4"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "e0644f5a6996f8084c26eb29d10bfb94"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "c89d15ecc0580109eb218f88492405a9"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "ae385c75d4e4eefa046937b3593c9e7c"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "046583c3bf4c3fe24dc0a7b2a4618d12"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3b5587aeeb459f3f15770f9215cfeda9"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "2ad29e788fe7841054c1704e6038dc0f"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3d0b8fe86a0b8bb457fd0b477fc7d8e8"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3c7bf9d06bcb0f4daa85e3eea39afe17"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "553c4a818fbf131349d32dae3c0077e7"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "6dce27d6c40cb29381bac8faa4a0b038"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "a70cdaed7dfeca504f6cabe427cb7ffb"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "45221206c0ca0a9ba99fa3264baa39ef"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "ca9132b6cc35af5b786c3c99cc8620ba"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "9165564f036a0bde3ed8e870b638f314"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "5c3359713ec34d4f481a33eb4184a2f1"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "505dc59e0d1eb75ae76ca1c7afc121c3"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "debcaa8dd18a33f9cdde7814a720da26"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "952c513e04e88be69cbdaf4d567618a7"
+            }
+          ]
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4390"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25403"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17525",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9002"
+          }
+        },
+        "free_bookable_slots": {
+          "data": [
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3d3224455d7af60c5181b320ce93f226"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "983807c394ea7f2b26e42a5012fb9302"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "270ae0c13d8b656cff79d49baaba4b98"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "382f951410101c0b7c2957cc99efe2b1"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "58fb335ae30f0370eea8b4904ed0ad41"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "0658c90639183f101d91ac02cd04e2e8"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "67e1bd537c69d5f64b7dc43146abf1b2"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "8c5fbf005ae4edaeee67bee47bdb1abb"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "5a09327eef47fc4d55d5535bc09a6cf5"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "7c0e69e4801f1fa2e13b00bb69c406af"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "7d861cb7946df289316ea63e579c3286"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "ee3b69424d97ef7f44c2c6f4fc48d503"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "0ad430e531c6202b1ec7e2e045d01941"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "0ff42e308bf8d761b7b260dd0c4e93c6"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "e45ae17f7a1c55e55e35accb1056ad62"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "634660ec9a75189530529a5c7f73f000"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "7447d544cf485b93d6fd4923e5365f1f"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "67cc6652b65ea6b0fe478383870d2bfb"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3111a61e9415ce051729d369338fb60f"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "f74c2875da2beafe327ebc8b20aa93b3"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "522c34753ae933422be4e5ea8445b84a"
+            }
+          ]
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4388"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "6448"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25407"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "25407",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9004"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "8358"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "9995"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25404"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17530",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9003"
+          }
+        },
+        "free_bookable_slots": {
+          "data": [
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3b7d0cb53267ed2e9bec0b055bc4cb9a"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "df240b7d935e891b9d9003d624219224"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "d166588beeca841023098401592da286"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "16db5f83c012a73f953ec899461513f2"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "b50aecabaa5251424e35b70d7bf1acda"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "5cf85709f94ec1cb2fee89555a091802"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "b06946d3fafa4e1ac62a9a4c24625da0"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "9098fdfbc0118b0a9a8ee9b9869229bf"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "e6422ac2ef0b87cb010a5573ad4e3835"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "1b91d81d31920cc4fa86f98af6c275d7"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "f6196dce989778ffb1c9ff0da1693952"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "79a690cdd9a3cd8a12da704610151e94"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "3065e592767d6116c66db8e07cf285ef"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "97e4e989b1e4c360dd081b07ea431b78"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "9c447b64cfe913fdfc28bac58b658e98"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "d31e97597f54080aa25ab8e9353d92ab"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "10b2804e7c71118193085174b8a1531c"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "c274ec84d0f98d2b5e80f7352d8dc805"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "8c2f6b1039ff5e194ad2081aaa9235b6"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "4f19b028117ad90ded2163b38593902b"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "10de3363b1273fc0d1c2d5fb24f02830"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "a241b625393564ca0630553dec1dd821"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "ab250870d208c32c6bd584745f9d085d"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "f55a68ab8f70bbee0cd430aa215c5206"
+            },
+            {
+              "type": "muntra_free_bookable_slot",
+              "id": "1f0db5f2a631ca2c65b6d4e11f066883"
+            }
+          ]
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "4387"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "6447"
+            },
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "25406"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "17527",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9005"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "6099"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "74262",
+      "type": "muntra_caregiver_at_location",
+      "attributes": {
+        "latest_review_comment": "Fake review text that must never be stored.",
+        "distance": null
+      },
+      "relationships": {
+        "clinic": {
+          "data": {
+            "type": "muntra_clinic",
+            "id": "2528"
+          }
+        },
+        "caregiver": {
+          "data": {
+            "type": "muntra_caregiver",
+            "id": "9006"
+          }
+        },
+        "free_bookable_slots": {
+          "data": []
+        },
+        "procedures": {
+          "data": [
+            {
+              "type": "muntra_caregiver_procedure_at_location",
+              "id": "30557"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "id": "1",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Basundersökning av tandläkare"
+      }
+    },
+    {
+      "id": "138",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Implantatkonsultation"
+      }
+    },
+    {
+      "id": "23",
+      "type": "muntra_procedure",
+      "attributes": {
+        "name": "Akut tandvårdsbehandling"
+      }
+    },
+    {
+      "id": "21de9545edaa6e7904ef001a7e99bcbb",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-09T15:00:00+01:00",
+        "dtend": "2026-11-09T15:40:00+01:00"
+      }
+    },
+    {
+      "id": "fc1c7f2b510e445916d84f4e27c06af4",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T08:00:00+01:00",
+        "dtend": "2026-11-10T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "e0644f5a6996f8084c26eb29d10bfb94",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T08:40:00+01:00",
+        "dtend": "2026-11-10T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "c89d15ecc0580109eb218f88492405a9",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T14:50:00+01:00",
+        "dtend": "2026-11-10T15:30:00+01:00"
+      }
+    },
+    {
+      "id": "ae385c75d4e4eefa046937b3593c9e7c",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T15:30:00+01:00",
+        "dtend": "2026-11-10T16:10:00+01:00"
+      }
+    },
+    {
+      "id": "046583c3bf4c3fe24dc0a7b2a4618d12",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T16:10:00+01:00",
+        "dtend": "2026-11-10T16:50:00+01:00"
+      }
+    },
+    {
+      "id": "3b5587aeeb459f3f15770f9215cfeda9",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T16:50:00+01:00",
+        "dtend": "2026-11-10T17:30:00+01:00"
+      }
+    },
+    {
+      "id": "2ad29e788fe7841054c1704e6038dc0f",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T08:00:00+01:00",
+        "dtend": "2026-11-12T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "3d0b8fe86a0b8bb457fd0b477fc7d8e8",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T08:40:00+01:00",
+        "dtend": "2026-11-12T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "3c7bf9d06bcb0f4daa85e3eea39afe17",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T09:20:00+01:00",
+        "dtend": "2026-11-12T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "553c4a818fbf131349d32dae3c0077e7",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T10:50:00+01:00",
+        "dtend": "2026-11-12T11:30:00+01:00"
+      }
+    },
+    {
+      "id": "6dce27d6c40cb29381bac8faa4a0b038",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T11:30:00+01:00",
+        "dtend": "2026-11-12T12:10:00+01:00"
+      }
+    },
+    {
+      "id": "a70cdaed7dfeca504f6cabe427cb7ffb",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T13:30:00+01:00",
+        "dtend": "2026-11-12T14:10:00+01:00"
+      }
+    },
+    {
+      "id": "45221206c0ca0a9ba99fa3264baa39ef",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T14:10:00+01:00",
+        "dtend": "2026-11-12T14:50:00+01:00"
+      }
+    },
+    {
+      "id": "ca9132b6cc35af5b786c3c99cc8620ba",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T14:50:00+01:00",
+        "dtend": "2026-11-12T15:30:00+01:00"
+      }
+    },
+    {
+      "id": "9165564f036a0bde3ed8e870b638f314",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T08:00:00+01:00",
+        "dtend": "2026-11-13T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "5c3359713ec34d4f481a33eb4184a2f1",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T08:40:00+01:00",
+        "dtend": "2026-11-13T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "505dc59e0d1eb75ae76ca1c7afc121c3",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T09:20:00+01:00",
+        "dtend": "2026-11-13T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "debcaa8dd18a33f9cdde7814a720da26",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T11:00:00+01:00",
+        "dtend": "2026-11-13T11:40:00+01:00"
+      }
+    },
+    {
+      "id": "952c513e04e88be69cbdaf4d567618a7",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T11:40:00+01:00",
+        "dtend": "2026-11-13T12:20:00+01:00"
+      }
+    },
+    {
+      "id": "4390",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "25403",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "3d3224455d7af60c5181b320ce93f226",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-09T08:20:00+01:00",
+        "dtend": "2026-11-09T09:00:00+01:00"
+      }
+    },
+    {
+      "id": "983807c394ea7f2b26e42a5012fb9302",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T08:00:00+01:00",
+        "dtend": "2026-11-10T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "270ae0c13d8b656cff79d49baaba4b98",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T08:40:00+01:00",
+        "dtend": "2026-11-10T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "382f951410101c0b7c2957cc99efe2b1",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T09:20:00+01:00",
+        "dtend": "2026-11-10T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "58fb335ae30f0370eea8b4904ed0ad41",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T16:00:00+01:00",
+        "dtend": "2026-11-10T16:40:00+01:00"
+      }
+    },
+    {
+      "id": "0658c90639183f101d91ac02cd04e2e8",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T16:40:00+01:00",
+        "dtend": "2026-11-10T17:20:00+01:00"
+      }
+    },
+    {
+      "id": "67e1bd537c69d5f64b7dc43146abf1b2",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T08:00:00+01:00",
+        "dtend": "2026-11-11T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "8c5fbf005ae4edaeee67bee47bdb1abb",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T08:40:00+01:00",
+        "dtend": "2026-11-11T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "5a09327eef47fc4d55d5535bc09a6cf5",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T09:20:00+01:00",
+        "dtend": "2026-11-11T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "7c0e69e4801f1fa2e13b00bb69c406af",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T10:20:00+01:00",
+        "dtend": "2026-11-11T11:00:00+01:00"
+      }
+    },
+    {
+      "id": "7d861cb7946df289316ea63e579c3286",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T11:00:00+01:00",
+        "dtend": "2026-11-11T11:40:00+01:00"
+      }
+    },
+    {
+      "id": "ee3b69424d97ef7f44c2c6f4fc48d503",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T11:40:00+01:00",
+        "dtend": "2026-11-11T12:20:00+01:00"
+      }
+    },
+    {
+      "id": "0ad430e531c6202b1ec7e2e045d01941",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T13:50:00+01:00",
+        "dtend": "2026-11-11T14:30:00+01:00"
+      }
+    },
+    {
+      "id": "0ff42e308bf8d761b7b260dd0c4e93c6",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T14:30:00+01:00",
+        "dtend": "2026-11-11T15:10:00+01:00"
+      }
+    },
+    {
+      "id": "e45ae17f7a1c55e55e35accb1056ad62",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T08:00:00+01:00",
+        "dtend": "2026-11-12T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "634660ec9a75189530529a5c7f73f000",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T08:40:00+01:00",
+        "dtend": "2026-11-12T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "7447d544cf485b93d6fd4923e5365f1f",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T09:20:00+01:00",
+        "dtend": "2026-11-12T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "67cc6652b65ea6b0fe478383870d2bfb",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T11:00:00+01:00",
+        "dtend": "2026-11-12T11:40:00+01:00"
+      }
+    },
+    {
+      "id": "3111a61e9415ce051729d369338fb60f",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T13:00:00+01:00",
+        "dtend": "2026-11-12T13:40:00+01:00"
+      }
+    },
+    {
+      "id": "f74c2875da2beafe327ebc8b20aa93b3",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T13:40:00+01:00",
+        "dtend": "2026-11-12T14:20:00+01:00"
+      }
+    },
+    {
+      "id": "522c34753ae933422be4e5ea8445b84a",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T14:20:00+01:00",
+        "dtend": "2026-11-12T15:00:00+01:00"
+      }
+    },
+    {
+      "id": "4388",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "6448",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "23"
+          }
+        }
+      }
+    },
+    {
+      "id": "25407",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "8358",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "9995",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "23"
+          }
+        }
+      }
+    },
+    {
+      "id": "25404",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "3b7d0cb53267ed2e9bec0b055bc4cb9a",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-09T08:40:00+01:00",
+        "dtend": "2026-11-09T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "df240b7d935e891b9d9003d624219224",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-09T14:20:00+01:00",
+        "dtend": "2026-11-09T15:00:00+01:00"
+      }
+    },
+    {
+      "id": "d166588beeca841023098401592da286",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T08:00:00+01:00",
+        "dtend": "2026-11-10T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "16db5f83c012a73f953ec899461513f2",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T08:40:00+01:00",
+        "dtend": "2026-11-10T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "b50aecabaa5251424e35b70d7bf1acda",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T09:20:00+01:00",
+        "dtend": "2026-11-10T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "5cf85709f94ec1cb2fee89555a091802",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T12:00:00+01:00",
+        "dtend": "2026-11-10T12:40:00+01:00"
+      }
+    },
+    {
+      "id": "b06946d3fafa4e1ac62a9a4c24625da0",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-10T12:40:00+01:00",
+        "dtend": "2026-11-10T13:20:00+01:00"
+      }
+    },
+    {
+      "id": "9098fdfbc0118b0a9a8ee9b9869229bf",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T08:00:00+01:00",
+        "dtend": "2026-11-11T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "e6422ac2ef0b87cb010a5573ad4e3835",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T08:40:00+01:00",
+        "dtend": "2026-11-11T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "1b91d81d31920cc4fa86f98af6c275d7",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T09:20:00+01:00",
+        "dtend": "2026-11-11T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "f6196dce989778ffb1c9ff0da1693952",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T11:00:00+01:00",
+        "dtend": "2026-11-11T11:40:00+01:00"
+      }
+    },
+    {
+      "id": "79a690cdd9a3cd8a12da704610151e94",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T11:40:00+01:00",
+        "dtend": "2026-11-11T12:20:00+01:00"
+      }
+    },
+    {
+      "id": "3065e592767d6116c66db8e07cf285ef",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T13:00:00+01:00",
+        "dtend": "2026-11-11T13:40:00+01:00"
+      }
+    },
+    {
+      "id": "97e4e989b1e4c360dd081b07ea431b78",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T13:40:00+01:00",
+        "dtend": "2026-11-11T14:20:00+01:00"
+      }
+    },
+    {
+      "id": "9c447b64cfe913fdfc28bac58b658e98",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-11T14:20:00+01:00",
+        "dtend": "2026-11-11T15:00:00+01:00"
+      }
+    },
+    {
+      "id": "d31e97597f54080aa25ab8e9353d92ab",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T08:00:00+01:00",
+        "dtend": "2026-11-12T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "10b2804e7c71118193085174b8a1531c",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T08:40:00+01:00",
+        "dtend": "2026-11-12T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "c274ec84d0f98d2b5e80f7352d8dc805",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T09:20:00+01:00",
+        "dtend": "2026-11-12T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "8c2f6b1039ff5e194ad2081aaa9235b6",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T11:20:00+01:00",
+        "dtend": "2026-11-12T12:00:00+01:00"
+      }
+    },
+    {
+      "id": "4f19b028117ad90ded2163b38593902b",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T13:00:00+01:00",
+        "dtend": "2026-11-12T13:40:00+01:00"
+      }
+    },
+    {
+      "id": "10de3363b1273fc0d1c2d5fb24f02830",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T13:40:00+01:00",
+        "dtend": "2026-11-12T14:20:00+01:00"
+      }
+    },
+    {
+      "id": "a241b625393564ca0630553dec1dd821",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-12T14:20:00+01:00",
+        "dtend": "2026-11-12T15:00:00+01:00"
+      }
+    },
+    {
+      "id": "ab250870d208c32c6bd584745f9d085d",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T08:00:00+01:00",
+        "dtend": "2026-11-13T08:40:00+01:00"
+      }
+    },
+    {
+      "id": "f55a68ab8f70bbee0cd430aa215c5206",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T08:40:00+01:00",
+        "dtend": "2026-11-13T09:20:00+01:00"
+      }
+    },
+    {
+      "id": "1f0db5f2a631ca2c65b6d4e11f066883",
+      "type": "muntra_free_bookable_slot",
+      "attributes": {
+        "dtstart": "2026-11-13T09:20:00+01:00",
+        "dtend": "2026-11-13T10:00:00+01:00"
+      }
+    },
+    {
+      "id": "4387",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 40
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "6447",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "23"
+          }
+        }
+      }
+    },
+    {
+      "id": "25406",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "138"
+          }
+        }
+      }
+    },
+    {
+      "id": "6099",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "30557",
+      "type": "muntra_caregiver_procedure_at_location",
+      "attributes": {
+        "frequency_in_minutes": 30
+      },
+      "relationships": {
+        "procedure": {
+          "data": {
+            "type": "muntra_procedure",
+            "id": "1"
+          }
+        }
+      }
+    },
+    {
+      "id": "9001",
+      "type": "muntra_caregiver",
+      "attributes": {
+        "first_name": "Test",
+        "last_name": "Person",
+        "professional_statement": "Fake statement.",
+        "overall_rating": 4.9
+      }
+    },
+    {
+      "id": "2528",
+      "type": "muntra_clinic",
+      "attributes": {
+        "clinic_name": "Test clinic",
+        "clinic_phone_number": "+46 00 000 00 00",
+        "clinic_email_address": "clinic@example.com"
+      }
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "total": 6,
+      "count": 6,
+      "per_page": 100,
+      "current_page": 1,
+      "total_pages": 1
+    }
+  },
+  "links": {
+    "self": "http://api.muntra.com/api/muntra-caregiver-at-locations?page=1",
+    "first": "http://api.muntra.com/api/muntra-caregiver-at-locations?page=1",
+    "last": "http://api.muntra.com/api/muntra-caregiver-at-locations?page=1"
+  }
+}
