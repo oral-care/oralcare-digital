@@ -7,6 +7,7 @@ import EmbeddedPostgres from "embedded-postgres";
 import { Client } from "pg";
 
 import { runMigrations } from "../../scripts/migrate";
+import { seedAvailability } from "../support/availability-seed";
 import { PEOPLE } from "./people";
 
 // The end-to-end tests' server (plan 15.3): a fresh Postgres with the roles,
@@ -57,17 +58,9 @@ async function main(): Promise<void> {
       ],
     );
   }
-  // A measurement at each of the last two even Swedish hours, so the frame has a time and no banner.
-  await owner.query(
-    `INSERT INTO core.job_run (job, country_id, schedule_point, status, started_at, finished_at, code_version)
-     SELECT 'availability', c.id, p.point, 'succeeded', p.point + interval '4 minutes', p.point + interval '5 minutes', 'e2e'
-     FROM core.country c,
-          LATERAL (SELECT (date_trunc('hour', now() AT TIME ZONE 'Europe/Stockholm')
-                           - make_interval(hours => extract(hour FROM now() AT TIME ZONE 'Europe/Stockholm')::int % 2 + k * 2))
-                          AT TIME ZONE 'Europe/Stockholm' AS point
-                   FROM generate_series(0, 1) AS k) p
-     WHERE c.code = 'se'`,
-  );
+  // Made-up measurements for the pages, ending at the last two even Swedish hours,
+  // so the frame has a time and no banner.
+  await seedAvailability(owner);
   await owner.end();
 
   const app = spawn("pnpm", ["exec", "next", "start", "-p", String(PORT)], {

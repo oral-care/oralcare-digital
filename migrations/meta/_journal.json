@@ -50,6 +50,13 @@
       "when": 1793523096152,
       "tag": "20261101085136_reserve-email-marks-cap",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793572541364,
+      "tag": "20261101223541_comparison-pair-index",
+      "breakpoints": true
     }
   ]
 }
