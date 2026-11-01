@@ -51,16 +51,22 @@ test("the cron routes refuse calls without the secret and are never redirected",
   }
 });
 
-test("pages without a session cookie go to the sign-in, and robots.txt closes everything", async ({
-  request,
-}) => {
+test("pages without a session cookie go to the sign-in", async ({ request }) => {
   for (const path of ["/", "/se", "/se/availability", "/se/admin/users", "/sign-in/market", "/no-access"]) {
     const response = await request.get(path, { maxRedirects: 0 });
     expect(response.status(), path).toBe(307);
     expect(response.headers().location, path).toMatch(/\/sign-in$/);
   }
+});
+
+test("crawlers may fetch the pages and are told not to index them", async ({ request }) => {
   const robots = await request.get("/robots.txt");
-  expect(await robots.text()).toMatch(/Disallow: \//);
+  const text = await robots.text();
+  expect(text).toMatch(/Allow: \//);
+  expect(text).not.toMatch(/Disallow/);
+  expect(robots.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+  const page = await request.get("/sign-in");
+  expect(await page.text()).toContain('<meta name="robots" content="noindex, nofollow"/>');
 });
 
 test("the test inbox only answers known addresses", async ({ request }) => {
