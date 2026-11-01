@@ -1,6 +1,8 @@
 /* Only imports and the base layer, as in oralcare.se (plan 4.14). Every value
    comes from the token files. */
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 @import "../styles/oralcare-tokens.css";
 @import "../styles/app-tokens.css";
 

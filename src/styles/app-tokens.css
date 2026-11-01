@@ -5,3 +5,12 @@
 :root {
   --attention-text: #be4310;
 }
+
+/* The app's names for Tailwind, all pointing at the tokens above or at
+   oralcare.se's. */
+@theme inline {
+  /* Text and buttons for what needs action. */
+  --color-attention: var(--attention-text);
+  /* Coming soon modules in the menu are greyer than the rest. */
+  --color-soon: var(--border-5);
+}

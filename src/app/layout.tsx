@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { NextIntlClientProvider } from "next-intl";
 
 import { interSans } from "./fonts";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Oral Care Digital",
+  // "{page heading} · Oral Care Digital" (plan 4.1).
+  title: { template: "%s · Oral Care Digital", default: "Oral Care Digital" },
   robots: { index: false, follow: false },
   // The light tile in light browser chrome, the dark one in dark, in 32 px for
   // the tab and 48 px for search results, as on oralcare.se. No media-less
@@ -48,7 +50,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   await headers();
   return (
     <html lang="en" className={interSans.variable}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      </body>
     </html>
   );
 }

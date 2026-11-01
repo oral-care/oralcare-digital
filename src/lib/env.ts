@@ -32,6 +32,10 @@ export const appEnvSchema = z.object({
   CRON_SECRET: cronSecret,
   // Resend's signing secret for /api/webhooks/resend. Until it is set, the webhook answers 503.
   RESEND_WEBHOOK_SECRET: z.string().startsWith("whsec_").min(20).optional(),
+  // Signs and encrypts sessions and codes (plan 11). Changing it signs everyone out.
+  BETTER_AUTH_SECRET: z.string().min(32),
+  // Sign-in codes and invitations. Without it no e-mail goes out.
+  RESEND_API_KEY: z.string().startsWith("re_").min(20).optional(),
 });
 
 export type AppEnv = z.infer<typeof appEnvSchema>;

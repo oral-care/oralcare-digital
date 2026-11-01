@@ -1,6 +1,6 @@
 # Oral Care Digital: byggspecifikation
 
-Version 6.5, 2026-11-01. Ägare: Digital, Oral Care Group. Status: för godkännande. Inget är byggt. Dokumentet innehåller inga personuppgifter, eftersom repot är publikt i början.
+Version 6.6, 2026-11-01. Ägare: Digital, Oral Care Group. Status: för godkännande. Inget är byggt. Dokumentet innehåller inga personuppgifter, eftersom repot är publikt i början.
 
 Det här dokumentet beskriver exakt allt appen ska göra: sidor, regler, insamling, jobb, mejl, databas, inloggning, säkerhet, kodstruktur, tester, inställningar och steg. Utseendet följer prototypen, som finns lokalt (avsnitt 13.4). Prototypen är bara underlag för utseende och innehåll. Koden byggs från grunden.
 
@@ -81,7 +81,7 @@ Appen byggs från början för Vercel Pro och ett privat repo, men driftsätts f
 
 ### 3.2 Användarna vid start
 
-- **Inga exempelanvändare.** Vid start finns bara du. Ditt konto skapas en gång med SQL i Neons SQL Editor: en inbjudan med alla vyer och alla marknader, du loggar in en gång, och rollen sätts till admin med SQL.
+- **Inga exempelanvändare.** Vid start finns bara du. Ditt konto skapas en gång med SQL i Neons SQL Editor (`scripts/sql/invite-first-admin.sql`): en inbjudan med alla vyer, alla marknader och rollen admin, och kontot skapas när du loggar in första gången. Adressen och namnet skrivs bara in i editorn, aldrig i repot.
 - Sedan bjuder du in alla andra i appen.
 
 ### 3.3 Vyer, marknader och roller
@@ -735,8 +735,9 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
 - **Kod:** `emailOTP({ otpLength: 8, expiresIn: 600, allowedAttempts: 3, storeOTP: "encrypted", resendStrategy: "reuse" })`. Inga lösenord och inga inloggningslänkar, eftersom Microsoft 365 Safe Links kan öppna en länk före användaren. Alla val finns i Better Auth 1.7.14. Vid nytt utskick skickas samma kod, som då gäller 10 minuter från det nya mejlet. Försöken räknas inte om, så högst 3 försök per kod gäller.
 - **Vem som får kod:** bara typen `sign-in`, och bara när `isAllowedEmail()` godkänner adressen och den har ett konto eller en inbjudan. Annars skickas inget och svaret är detsamma. Mejlet skickas i `after()`, så att svarstiden också är densamma.
 - **`isAllowedEmail()`:** gemener, exakt en av koncernens domäner eller en inbjudan som bara gäller Tracking Framework, inget plustecken, inga citattecken och bara ASCII.
-- **Första inloggningen:** `databaseHooks.user.create.before` släpper bara igenom en adress med en oanvänd inbjudan. `after` kopierar namn, roll, vyer och marknader från inbjudan och markerar den använd, i samma transaktion. `databaseHooks.session.create.after` sätter `last_sign_in_at`.
+- **Första inloggningen:** `databaseHooks.user.create.before` släpper bara igenom en adress med en oanvänd inbjudan och sätter namn, roll och om kontot är externt. `after` kopierar vyer och marknader från inbjudan och markerar den använd, i en egen transaktion som går att köra igen. Better Auth lägger inte skapandet av användaren och krokarna i samma transaktion, så avbryts en första inloggning halvvägs fyller nästa läsning av sessionen i det som saknas. `databaseHooks.session.create.after` sätter `last_sign_in_at`.
 - **Allt annat är avstängt:** `src/app/api/auth/[...all]/route.ts` släpper bara igenom `POST sign-in/email-otp`, `POST email-otp/send-verification-otp`, `GET get-session` och `POST sign-out`. Allt annat ger 404, även sådant som tillkommer vid en uppgradering. Inbjudan, ändring och borttagning är egna server actions.
+- **Telemetri:** Better Auths telemetri är avstängd. Cookies har prefixet `oc`.
 - **Sessioner:** 8 timmar som förlängs vid användning (`updateAge` 1 timme), högst 12 timmar totalt (en egen kontroll i dataåtkomstlagret, eftersom Better Auth saknar ett absolut tak), `cookieCache` av så att ändringar gäller direkt. Säkra cookies, inga cookies delade med underdomäner, `baseURL` och `trustedOrigins` är bara `APP_URL`, och CSRF- och origin-kontrollerna stängs aldrig av.
 - **Behörigheter:** viewer läser sina vyer och marknader. Admin får dessutom bjuda in, ändra och ta bort användare, och det gäller alla marknader. Dataåtkomstlagret och server actions använder samma kontroll.
 - **Spärrar:** Better Auths egen spärr är avstängd (`rateLimit: { enabled: false }`), eftersom den skulle väcka databasen för anonyma anrop. I stället gäller Vercels brandvägg och `auth.login_throttle`, med atomära räknare:
@@ -745,7 +746,7 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
   - mejlkvoten per UTC-dygn och mottagare, som Resend räknar: högst 60 kodmejl, 10 inbjudningar, och 4 per admin för larm och sammanfattning (3 larmmejl och 1 sammanfattning). Med upp till 5 admins blir det högst 90 av Resends 100. Fler admins än 5 kräver Resends betalplan. Varje utskick reserveras först med `core.reserve_email(typ, antal)`, som ökar räknaren i en enda sats och nekar när taket är nått, så att två samtidiga utskick aldrig båda kommer igenom på sista platsen. Nås taket för kodmejl står det i nästa sammanfattning;
   - ett nödstopp: inställningen `login_paused`, som sätts med SQL i Neons SQL Editor och stoppar alla kodmejl;
   - klientens IP-adress är det första värdet i `x-forwarded-for`, som Vercel sätter, och det testas.
-- **Brandvägg:** en regel i Vercels WAF tillåter högst 30 `POST` per 10 minuter och IP-adress mot `/api/auth/sign-in/email-otp` och `/api/auth/email-otp/send-verification-otp`.
+- **Brandvägg:** en regel i Vercels WAF tillåter högst 30 `POST` per 10 minuter och IP-adress mot `/api/auth/`, där kodbegäran och inloggningen ligger. Hobby har plats för en sådan regel per projekt (fönster upp till 10 minuter, räknat per IP-adress, kontrollerat 2026-11-01), och regeln läggs in i Vercels Firewall för projektet.
 - **Ändra och ta bort** körs var för sig i en enda transaktion i en server action:
   - antalet admins räknas med `SELECT ... FOR UPDATE`, så att två admins inte kan ta bort eller degradera varandra samtidigt;
   - ändring ersätter användarens rader i `user_view` och `user_market` och skriver `user.updated` med före och efter;
@@ -906,8 +907,12 @@ oralcare-digital/
         schema/core.ts
         schema/auth.ts
         schema/availability.ts
-      auth/                           Better Auth, permissions.ts, spärrar och sessionens tak, server-only
-      users/                          inbjudan, ändring och borttagning (server actions), server-only
+      auth/                           Better Auth (auth.ts), sessionen och dess tak (session.ts), permissions.ts,
+                                      allowed-email.ts, spärrarna (throttle.ts), inbjudan vid första inloggningen,
+                                      kodleveransen och testernas kodmottagare, server-only
+      users/                          listan (data.ts), reglerna (manage.ts) och server actions (actions.ts), server-only
+      messages.ts                     texterna i messages/en.json för ren kod och jobben
+      audit.ts                        händelserna i auth.audit_event
       alerts/                         larmens regler och nycklar, ren kod
       email/                          de fyra mejlen, mejlens tokens och kontrollen av Resends webhook, ren kod
       audit.ts                        händelserna i auth.audit_event, ren kod
@@ -920,7 +925,7 @@ oralcare-digital/
   tests/
     fixtures/                         inspelade svar från källorna, utan personuppgifter
     integration/                      Vitest mot Postgres
-    e2e/                              Playwright
+    e2e/                              Playwright: server.ts (egen Postgres och next start), people.ts, helpers.ts och testerna
   AGENTS.md, CLAUDE.md, README.md
   package.json, pnpm-lock.yaml, .npmrc, .nvmrc
   pnpm-workspace.yaml                 bara pnpm-inställningar, som i oralcare.se, inget workspace
@@ -1044,7 +1049,7 @@ Körs två gånger, med `TZ=UTC` och `TZ=America/New_York`, så att inget beror 
 
 ### 15.3 End-to-end (Playwright)
 
-Mot `next build` och `next start` med en testdatabas med påhittad data, och en kodmottagare som bara finns när `APP_ENV=test`.
+Mot `next build` och `next start` med en testdatabas med påhittad data, och en kodmottagare som bara finns när `APP_ENV=test`: mejlen går då till `src/lib/auth/test-inbox.ts` i stället för till Resend, och testerna läser koden från `/api/test/inbox`, som svarar 404 i alla andra lägen. `tests/e2e/server.ts` startar en egen Postgres med rollerna, migreringarna och påhittade inbjudningar, och appen med `next start`. Varje test har en egen IP-adress i `x-forwarded-for`, så att spärrarna per IP-adress går att testa.
 
 - **Logga in:** e-post, kod, val av marknad, direkt in med en marknad, fel kod, spärr, och samma svar för en adress som inte är inbjuden.
 - **Behörighet:** menyn visar bara användarens vyer, och en länk till en annan vy eller marknad skickar till startsidan. En klinik från en annan marknad ger 404. Ett externt konto når bara Tracking Framework.
