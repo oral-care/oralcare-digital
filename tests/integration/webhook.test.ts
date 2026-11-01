@@ -15,7 +15,7 @@ async function route(withSecret = true) {
   vi.stubEnv("APP_URL", "https://digital.oralcaregroup.com");
   vi.stubEnv("DATABASE_URL_APP", urls.oc_app);
   vi.stubEnv("CRON_SECRET", "0".repeat(64));
-  vi.stubEnv("BETTER_AUTH_SECRET", "a-test-secret-that-is-long-enough-1234");
+  vi.stubEnv("BETTER_AUTH_SECRET", "test".repeat(10));
   vi.stubEnv("RESEND_WEBHOOK_SECRET", withSecret ? secret : "");
   if (!withSecret) delete process.env.RESEND_WEBHOOK_SECRET;
   const handler = await import("@/app/api/webhooks/resend/route");

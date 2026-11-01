@@ -80,7 +80,7 @@ async function main(): Promise<void> {
       DATABASE_URL_APP: url("oc_app", "e2e-oc_app"),
       DATABASE_URL_COLLECTOR: url("oc_collector", "e2e-oc_collector"),
       CRON_SECRET: "0".repeat(64),
-      BETTER_AUTH_SECRET: "an-end-to-end-test-secret-of-enough-length",
+      BETTER_AUTH_SECRET: "test".repeat(10),
     },
   });
 

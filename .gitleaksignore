@@ -1,0 +1,4 @@
+# Made-up test values in commit a9c1e65 that gitleaks takes for secrets. They
+# were never real and are replaced by low-entropy values in the next commit.
+a9c1e651fa6d4c88f0cf28621dff57d2fd613087:tests/e2e/server.ts:generic-api-key:83
+a9c1e651fa6d4c88f0cf28621dff57d2fd613087:tests/integration/webhook.test.ts:generic-api-key:18
