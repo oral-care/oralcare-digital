@@ -768,7 +768,7 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
   form-action 'self'; frame-ancestors 'none'
   ```
 
-- **Headers på alla routes:** HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, en `Permissions-Policy` som stänger allt, `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy: same-origin` och `X-Robots-Tag: noindex, nofollow`. Inloggade sidor får `Cache-Control: private, no-store`. `robots.txt` stänger allt.
+- **Headers på alla routes:** HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, en `Permissions-Policy` som stänger allt, `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy: same-origin` och `X-Robots-Tag: noindex, nofollow`. Inloggade sidor får `Cache-Control: private, no-store`. `robots.txt` släpper in sökmotorerna, så att de ser noindex. En spärr i `robots.txt` skulle dölja noindex för Google, och en länkad adress kunde då synas som en tom länk i sökresultaten.
 - **Inga tredjepartsskript**, ingen analys och ingen indexering. Typsnittet Inter laddas från appen själv.
 - **Cache** bara efter behörighetskontrollen. Sidorna renderas per anrop, eftersom CSP-noncen kräver det, så Cache Components används inte. Datafunktionerna cachas med `unstable_cache` och taggen `availability:{marknad}`, och cron-routen ogiltigförklarar taggen (`revalidateTag`) efter varje lyckad mätning, så att även en sen mätning syns direkt.
 - **Serverfel** fångas av `onRequestError` i `src/instrumentation.ts` och sparas i `core.app_error` med route, felkod och ett hash av meddelandet, utan personuppgifter. Antalet syns i den dagliga sammanfattningen, eftersom Vercels loggar sparas kort.
