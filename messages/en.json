@@ -234,6 +234,171 @@
     "title": "No data for {market} yet",
     "text": "{brand} is added when the clinics' booking system is connected."
   },
+  "availability": {
+    "lead": {
+      "whatPatientsSee": "Free slots patients can book online on oralcare.se.",
+      "clinics": "Every clinic, with its own page.",
+      "patientVsMuntra": "Free slots in Muntra that patients can't see on oralcare.se."
+    },
+    "noMeasurement": {
+      "title": "No measurement yet",
+      "text": "The pages fill in after the first measurement of {market}."
+    },
+    "today": "Today",
+    "next14": "{clinics, plural, one {# clinic} other {# clinics}}, next 14 days",
+    "dayNext14": "{day}, next 14 days",
+    "unit": {
+      "clinics": "{count, plural, one {clinic} other {clinics}}",
+      "slots": "{count, plural, one {slot} other {slots}}",
+      "ofTreatments": "of {total} treatments"
+    },
+    "cards": {
+      "good": {
+        "label": "Good availability",
+        "note": "More than 10 slots in every online treatment."
+      },
+      "mixed": {
+        "label": "Mixed availability",
+        "note": "Good in some online treatments, low in others."
+      },
+      "low": {
+        "label": "Low availability",
+        "note": "1 to 10 slots in every online treatment."
+      },
+      "slotsNotOnline": {
+        "label": "Slots not online",
+        "note": "Activated in Muntra, not on oralcare.se.",
+        "go": "Patient vs Muntra"
+      },
+      "short": {
+        "label": "Short waiting time",
+        "note": "Akut: first slot today. Others: within 3 days. In every online treatment."
+      },
+      "mixedWait": {
+        "label": "Mixed waiting time",
+        "note": "Short in some online treatments, long in others."
+      },
+      "long": {
+        "label": "Long waiting time",
+        "note": "Akut: first slot after today. Others: after 3 days. In every online treatment."
+      },
+      "notOnline": {
+        "label": "Not online",
+        "note": "No treatment patients can book on oralcare.se."
+      },
+      "onSite": {
+        "label": "On oralcare.se",
+        "note": "Treatments patients can book online here."
+      }
+    },
+    "monthAhead": {
+      "title": "Month ahead",
+      "sub": "Next 30 days, from today",
+      "none": "There are no free online slots in the next 30 days for this selection.",
+      "single": "In the next 30 days there are <b>{total} free online slots</b> at <b>{clinic}</b>.",
+      "many": "In the next 30 days there are <b>{total} free online slots</b> at {clinics, plural, one {# clinic} other {# clinics}} in {regions, plural, one {# region} other {# regions}}.",
+      "largest": "The largest share is in the {region} region ({clinics, plural, one {# clinic} other {# clinics}}), <b>{share}</b>.",
+      "most": "The clinic with the most is <b>{clinic}</b>, with <b>{share}</b> of all slots.",
+      "smallest": "The smallest share is in the {region} region ({clinics, plural, one {# clinic} other {# clinics}}), <b>{share}</b>.",
+      "fewest": "The clinic with the fewest is <b>{clinic}</b>, with <b>{slots, plural, one {# slot} other {# slots}}</b>."
+    },
+    "overTime": "Free slots over time",
+    "nothingMatches": {
+      "title": "Nothing matches these filters",
+      "clear": "Clear filters"
+    },
+    "details": {
+      "title": "Details",
+      "byTreatment": "By treatment",
+      "byClinic": "By clinic"
+    },
+    "columns": {
+      "treatment": "Treatment",
+      "freeSlots": "Free slots",
+      "onlineAt": "Online at",
+      "typicalWait": "Typical wait",
+      "vsPrevious": "Vs previous period",
+      "clinic": "Clinic",
+      "region": "Region",
+      "treatmentsWithSlots": "Treatments with slots",
+      "fewestSlots": "Fewest slots",
+      "firstFreeSlot": "First free slot",
+      "availability": "Availability",
+      "waitingTime": "Waiting time",
+      "onlineTreatments": "Online treatments",
+      "slotsNotOnline": "Slots not online",
+      "site": "oralcare.se",
+      "inMuntra": "In Muntra",
+      "slotsInMuntra": "Slots in Muntra",
+      "firstFreeSlotOnline": "First free slot online",
+      "onSite": "On oralcare.se",
+      "availableInMuntra": "Available in Muntra",
+      "since": "Since"
+    },
+    "tips": {
+      "treatment": "A treatment patients can book online on oralcare.se.\nClick a row to see it per clinic.",
+      "freeSlots": "Free slots on oralcare.se in the next 14 days, all clinics in the filter together.",
+      "onlineAt": "Clinics with slots patients can book on oralcare.se, out of all clinics in the filter.",
+      "typicalWait": "The median time to the first slot patients can book on oralcare.se, across the clinics where it is online.",
+      "trendAll": "Free slots on oralcare.se each day in the period. All clinics together.",
+      "vsPrevious": "Average free slots per day in this period, compared with the same number of days just before it.",
+      "clinic": "Click a row to open the clinic's page.",
+      "region": "The region the clinic belongs to.",
+      "freeSlotsOne": "Free slots on oralcare.se in the next 14 days for the chosen treatment.",
+      "firstFreeSlot": "When the first slot patients can book on oralcare.se is.",
+      "trend": "Free slots on oralcare.se each day in the period.",
+      "treatmentsWithSlots": "Treatments with slots on oralcare.se, out of the treatments in the filter.",
+      "fewestSlots": "The online treatment with the fewest free slots, and how many.",
+      "availabilityMixed": "Good: more than 10 slots in the next 14 days.\nLow: 1 to 10.\nMixed: the clinic's treatments differ.",
+      "waitingTimeMixed": "Short: first slot today for Akut, within 3 days for other treatments.\nLong: later than that.\nMixed: the clinic's treatments differ.",
+      "onlineTreatments": "Treatments with slots patients can book on oralcare.se, out of all treatments on oralcare.se.",
+      "slotsNotOnline": "Free slots in Muntra that patients can't book on oralcare.se.",
+      "clinicTreatment": "Every treatment patients can book online on oralcare.se.",
+      "site": "Bookable: oralcare.se shows free slots for it.\nNot online: oralcare.se shows no slots, or the clinic can't be chosen for it.",
+      "inMuntra": "Activated: at least one caregiver has it open for online booking in Muntra.\nNot activated: no caregiver has.",
+      "slotsInMuntra": "Free slots in Muntra in the next 14 days.",
+      "availability": "Good: more than 10 slots in the next 14 days.\nLow: 1 to 10.",
+      "waitingTime": "Short: first slot today for Akut, within 3 days for other treatments.\nLong: later than that.",
+      "hiddenTreatment": "The treatment with free slots in Muntra that patients can't see.",
+      "onSite": "Free slots patients can book on oralcare.se in the next 14 days.\nNot online: the treatment can't be booked there.",
+      "since": "The first day the difference was measured."
+    },
+    "status": {
+      "good": "Good",
+      "low": "Low",
+      "mixed": "Mixed",
+      "short": "Short",
+      "long": "Long",
+      "notOnline": "Not online",
+      "unknown": "n/a"
+    },
+    "wait": {
+      "today": "Today",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "none": "None in 30 days"
+    },
+    "ofClinics": "{count} of {total, plural, one {# clinic} other {# clinics}}",
+    "ofTotal": "{count} of {total}",
+    "fewest": "{treatment} ({slots})",
+    "na": "n/a",
+    "clinic": {
+      "back": "Clinics",
+      "availability": "{status} availability",
+      "waitingTime": "{status} waiting time",
+      "place": "{city} · Region {region}",
+      "treatments": "Treatments",
+      "bookable": "Bookable",
+      "activated": "Activated",
+      "notActivated": "Not activated",
+      "slotsNotOnline": "{count, plural, one {# slot} other {# slots}} not online",
+      "noSlotsInMuntra": "No slots in Muntra",
+      "allTreatments": "All treatments"
+    },
+    "patientVsMuntra": {
+      "nothingHidden": "Nothing hidden",
+      "nothingHiddenText": "Patients can see every free slot Muntra has open for online booking."
+    }
+  },
   "noAccess": {
     "heading": "No access yet",
     "title": "You don't have access to any views",
@@ -304,5 +469,35 @@
       "gone": "This user no longer exists. Reload the page.",
       "notSent": "The invitation couldn't be sent. Try again later."
     }
+  },
+  "filters": {
+    "clinics": "Clinics",
+    "allClinics": "All clinics",
+    "clinicCount": "{count, plural, one {# clinic} other {# clinics}}",
+    "regions": "Regions",
+    "allRegions": "All regions",
+    "regionCount": "{count, plural, one {# region} other {# regions}}",
+    "treatments": "Treatments",
+    "allTreatments": "All treatments",
+    "treatmentCount": "{count, plural, one {# treatment} other {# treatments}}",
+    "search": "Search",
+    "period": "Period",
+    "periods": {
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "90": "Last 90 days",
+      "month": "This month",
+      "last": "Last month",
+      "custom": "Custom period"
+    },
+    "range": "{from} to {to}",
+    "chooseStart": "Choose a start date",
+    "chooseEnd": "Choose an end date",
+    "back": "Back",
+    "apply": "Apply"
+  },
+  "chart": {
+    "label": "Free slots over time",
+    "noValue": "n/a"
   }
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
+import { filterSearch, parseFilters, periodOnly } from "@/lib/availability/filters";
 import type { IconName } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 
@@ -21,10 +22,16 @@ function activeHref(pathname: string, hrefs: string[]): string | undefined {
     .sort((a, b) => b.length - a.length)[0];
 }
 
+/** An Availability page, which has the period filter. */
+const hasPeriod = (href: string) => /\/availability(\/|$)/.test(href);
+
 // The menu's groups (plan 4.3): only the views the user has. Coming soon
-// modules are links too, but greyer until they are built.
+// modules are links too, but greyer until they are built. Between the
+// Availability pages the menu keeps the period but not the clinic and
+// treatment filters (plan 4.1).
 export function Nav({ groups }: { groups: NavGroup[] }) {
   const pathname = usePathname();
+  const period = filterSearch(periodOnly(parseFilters(useSearchParams())));
   const active = activeHref(
     pathname,
     groups.flatMap((g) => g.items.map((i) => i.href)),
@@ -41,7 +48,7 @@ export function Nav({ groups }: { groups: NavGroup[] }) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={hasPeriod(item.href) ? `${item.href}${period}` : item.href}
               aria-current={current ? "page" : undefined}
               className={cn(
                 "flex h-9 items-center gap-2.5 rounded-md px-2.5 text-paragraph-small no-underline focus-ring hover:bg-secondary",

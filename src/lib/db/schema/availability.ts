@@ -4,6 +4,7 @@ import {
   boolean,
   check,
   date,
+  index,
   integer,
   jsonb,
   numeric,
@@ -79,7 +80,11 @@ export const comparison = availability.table(
     eprSlots: integer("epr_slots"),
     slotsNotOnline: integer("slots_not_online"),
   },
-  (t) => [uniqueIndex("comparison_run_pair").on(t.jobRunId, t.clinicId, t.treatmentId)],
+  (t) => [
+    uniqueIndex("comparison_run_pair").on(t.jobRunId, t.clinicId, t.treatmentId),
+    // Patient vs Muntra reads a pair's history for "Since" (plan 4.7).
+    index("comparison_pair").on(t.clinicId, t.treatmentId),
+  ],
 );
 
 // Start times as minutes from the window start, without caregivers. Kept 90 days.

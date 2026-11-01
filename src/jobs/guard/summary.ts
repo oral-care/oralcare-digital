@@ -1,9 +1,9 @@
 import type { Client } from "pg";
 
+import { CHANGE_COLUMNS, changeLine, type ChangeRow } from "@/lib/availability/changes";
 import { clinicStatus } from "@/lib/availability/statuses";
 import type { MarketSummary, SummaryData } from "@/lib/email/emails";
 import type { Market } from "@/lib/markets";
-import { t } from "@/lib/messages";
 
 import {
   BACKUP_MAX_HOURS,
@@ -149,52 +149,12 @@ async function marketSummary(
 
 /** Yesterday's changes in the offering as lines, with the names they had last (plan 6.5). */
 async function changeLines(client: Client, countryId: number, day: GuardDay): Promise<string[]> {
-  const rows = await client.query<{
-    kind: string;
-    clinic: string | null;
-    treatment: string | null;
-    before: Record<string, unknown> | null;
-    after: Record<string, unknown> | null;
-    region_before: string | null;
-    region_after: string | null;
-  }>(
-    `SELECT e.kind,
-            (SELECT n.name FROM core.clinic_name n WHERE n.clinic_id = e.clinic_id ORDER BY lower(n.valid_during) DESC LIMIT 1) AS clinic,
-            (SELECT n.name FROM core.treatment_name n WHERE n.treatment_id = e.treatment_id ORDER BY lower(n.valid_during) DESC LIMIT 1) AS treatment,
-            e.before, e.after,
-            (SELECT r.name FROM core.region r WHERE r.country_id = e.country_id AND r.key = e.before->>'region') AS region_before,
-            (SELECT r.name FROM core.region r WHERE r.country_id = e.country_id AND r.key = e.after->>'region') AS region_after
+  const rows = await client.query<ChangeRow>(
+    `SELECT ${CHANGE_COLUMNS}
      FROM availability.change_event e
      WHERE e.country_id = $1 AND e.created_at >= $2 AND e.created_at < $3
      ORDER BY e.id`,
     [countryId, day.start, day.end],
   );
-  return rows.rows.map((row) => {
-    const clinic = row.clinic ?? "";
-    const treatment = row.treatment ?? String(row.before?.name ?? row.after?.name ?? "");
-    const key = (kind: string) => `email.summary.changeKinds.${kind}`;
-    switch (row.kind) {
-      case "treatment_renamed":
-        return t(key(row.kind), {
-          before: String(row.before?.name ?? ""),
-          after: String(row.after?.name ?? ""),
-        });
-      case "clinic_region_changed":
-        return t(key(row.kind), { clinic, before: row.region_before ?? "", after: row.region_after ?? "" });
-      case "selectable_changed":
-        return t(key(row.after?.selectable ? "selectable_on" : "selectable_off"), { clinic, treatment });
-      case "epr_activation_changed":
-        return t(key(row.after?.activated ? "epr_activation_on" : "epr_activation_off"), {
-          clinic,
-          treatment,
-        });
-      case "max_lead_changed":
-        return t(key(row.kind), {
-          before: Number(row.before?.days ?? 0),
-          after: Number(row.after?.days ?? 0),
-        });
-      default:
-        return t(key(row.kind), { clinic, treatment });
-    }
-  });
+  return rows.rows.map(changeLine);
 }

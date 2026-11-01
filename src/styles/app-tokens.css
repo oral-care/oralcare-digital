@@ -1,9 +1,42 @@
 /* This app's own tokens (plan 4.14). They point at the tokens copied from
    oralcare.se. The only value of its own is the dark orange text for what
-   needs action, which oralcare.se doesn't have. The status colours and the
-   chart's seven line colours are added with the pages in step 4. */
+   needs action, which oralcare.se doesn't have. */
 :root {
   --attention-text: #be4310;
+
+  /* The statuses (plan 4.12): Good and Short green-grey, Low and Long light
+     orange with an orange dot, Mixed grey with an orange dot, slots not online
+     orange and Not online grey. */
+  --status-good-bg: var(--color-oc-green-100);
+  --status-good-text: var(--color-oc-green-600);
+  --status-low-bg: var(--color-oc-orange-50);
+  --status-low-text: var(--foreground);
+  --status-mixed-bg: var(--color-oc-gray-100);
+  --status-mixed-text: var(--color-oc-neutral-700);
+  --status-dot: var(--color-oc-orange-400);
+  --status-attention-bg: var(--color-oc-orange-50);
+  --status-attention-border: var(--color-oc-orange-100);
+  --status-attention-text: var(--attention-text);
+  --status-neutral-bg: var(--color-oc-gray-100);
+  --status-neutral-text: var(--muted-foreground);
+
+  /* Change from the previous period: up green, down orange. */
+  --delta-up: var(--color-oc-green-600);
+  --delta-down: var(--attention-text);
+
+  /* The chart's seven line colours, one fixed colour per treatment (plan 4.4):
+     black, OC Green 500, OC Orange 400, OC Green 400, OC Green 600, OC Orange
+     700 and grey. Changes in the offering are a dashed orange line. */
+  --chart-1: var(--foreground);
+  --chart-2: var(--color-oc-green-500);
+  --chart-3: var(--color-oc-orange-400);
+  --chart-4: var(--color-oc-green-400);
+  --chart-5: var(--color-oc-green-600);
+  --chart-6: var(--attention-text);
+  --chart-7: var(--border-5);
+  --chart-grid: var(--border);
+  --chart-guide: var(--border-4);
+  --chart-marker: var(--color-oc-orange-400);
 }
 
 /* The app's names for Tailwind, all pointing at the tokens above or at
@@ -13,4 +46,40 @@
   --color-attention: var(--attention-text);
   /* Coming soon modules in the menu are greyer than the rest. */
   --color-soon: var(--border-5);
+
+  --color-status-good: var(--status-good-bg);
+  --color-status-good-text: var(--status-good-text);
+  --color-status-low: var(--status-low-bg);
+  --color-status-low-text: var(--status-low-text);
+  --color-status-mixed: var(--status-mixed-bg);
+  --color-status-mixed-text: var(--status-mixed-text);
+  --color-status-dot: var(--status-dot);
+  --color-status-attention: var(--status-attention-bg);
+  --color-status-attention-border: var(--status-attention-border);
+  --color-status-attention-text: var(--status-attention-text);
+  --color-status-neutral: var(--status-neutral-bg);
+  --color-status-neutral-text: var(--status-neutral-text);
+  --color-delta-up: var(--delta-up);
+  --color-delta-down: var(--delta-down);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-guide: var(--chart-guide);
+  --color-chart-marker: var(--chart-marker);
+
+  /* The cards' number and the Month ahead text (plan 4.4). */
+  --text-stat: 36px;
+  --text-stat--line-height: 1.1;
+  --text-stat--font-weight: 600;
+  --text-summary: 16px;
+  --text-summary--line-height: 26px;
+
+  /* Under 1100 px the cards show two per row (plan 4.12). */
+  --breakpoint-wide: 1100px;
 }

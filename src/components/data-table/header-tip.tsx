@@ -8,10 +8,14 @@ export function HeaderTip({
   label,
   tip,
   alignRight = false,
+  numeric = false,
 }: {
   label: string;
   tip: string;
+  /** Opens the box to the left, for the last columns. */
   alignRight?: boolean;
+  /** A column of numbers, aligned right. */
+  numeric?: boolean;
 }) {
   return (
     <th
@@ -19,6 +23,7 @@ export function HeaderTip({
       className={cn(
         EYEBROW,
         "group relative cursor-help border-b border-border px-5 py-3 text-left focus-ring",
+        numeric && "text-right",
       )}
     >
       {label}

@@ -38,3 +38,30 @@ test("the frame, Users, the form and the dialog", async ({ browser }) => {
   await page.goto("/dk/availability");
   await page.screenshot(shot("9-no-data"));
 });
+
+test("the Availability pages and a filter menu", async ({ browser }) => {
+  const page = await signedInPage(browser, "viewer");
+  await page.goto("/se/availability");
+  await page.screenshot(shot("10-what-patients-see"));
+  await page.getByRole("button", { name: /Clinics/ }).click();
+  await expect(page.getByRole("listbox")).toBeVisible();
+  // Let the menu's opening animation finish.
+  await page.waitForTimeout(300);
+  await page.screenshot(shot("11-clinics-filter"));
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /Period/ }).click();
+  await page.getByRole("option", { name: /Custom period/ }).click();
+  await expect(page.getByText("Choose a start date")).toBeVisible();
+  await page.waitForTimeout(300);
+  await page.screenshot(shot("12-calendar"));
+  await page.keyboard.press("Escape");
+  await page.goto("/se/availability?v=clinic");
+  await page.screenshot(shot("13-by-clinic"));
+  await page.goto("/se/availability/clinics");
+  await page.screenshot(shot("14-clinics"));
+  await page.getByRole("link", { name: "Oral Care Epsilon" }).click();
+  await expect(page.getByRole("heading", { name: "Oral Care Epsilon" })).toBeVisible();
+  await page.screenshot(shot("15-clinic"));
+  await page.goto("/se/availability/patient-vs-muntra");
+  await page.screenshot(shot("16-patient-vs-muntra"));
+});
