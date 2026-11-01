@@ -177,7 +177,16 @@ export function SlotsChart({
                 strokeWidth={2}
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                dot={false}
+                // A day with no value on either side has no line to draw, so it gets a dot.
+                dot={({ cx, cy, index }: { cx?: number; cy?: number; index?: number }) => {
+                  const i = index ?? -1;
+                  const alone = s.values[i] != null && s.values[i - 1] == null && s.values[i + 1] == null;
+                  return alone && cx !== undefined && cy !== undefined ? (
+                    <circle key={`${s.key}-${i}`} cx={cx} cy={cy} r={2.5} fill={`var(--chart-${s.color})`} />
+                  ) : (
+                    <g key={`${s.key}-${i}`} />
+                  );
+                }}
                 activeDot={false}
                 connectNulls={false}
                 isAnimationActive={false}
