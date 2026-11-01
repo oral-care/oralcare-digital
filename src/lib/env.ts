@@ -30,6 +30,8 @@ export const appEnvSchema = z.object({
   APP_URL: z.url(),
   DATABASE_URL_APP: databaseUrl,
   CRON_SECRET: cronSecret,
+  // Resend's signing secret for /api/webhooks/resend. Until it is set, the webhook answers 503.
+  RESEND_WEBHOOK_SECRET: z.string().startsWith("whsec_").min(20).optional(),
 });
 
 export type AppEnv = z.infer<typeof appEnvSchema>;

@@ -3,6 +3,7 @@ import { REQUIRED_SCHEMA } from "@/lib/db/schema-version";
 import { marketByCode, type MarketCode } from "@/lib/markets";
 import { zonedDay, zonedHour, zonedParts } from "@/lib/time";
 
+import { saveAlerts, sendPendingAlerts } from "../runtime/alert-mail";
 import { withClient } from "../runtime/db";
 import { codeVersion, type JobEnv } from "../runtime/env";
 import { realClock, RunGuard, SourceClient, type Clock, type Fetcher } from "../runtime/http";
@@ -13,7 +14,7 @@ import { collect, failure, type Sources } from "./collect";
 import { loadContext, type Context } from "./context";
 import { dailyRows, evaluate, type FormatProblem } from "./evaluate";
 import { planPairs, removedTreatments, webClinics } from "./pairs";
-import { persist, writeAlerts } from "./persist";
+import { persist } from "./persist";
 import { diffRegistry } from "./registry";
 import { Muntra } from "./sources/epr/muntra";
 import type { Registry } from "./sources/types";
@@ -56,15 +57,38 @@ export type JobOutcome =
   | { status: "not-run"; reason: "already-succeeded" | "point-running" | "other-run-running" }
   | { status: "succeeded" | "failed"; runId: number };
 
-/** Tests and local runs pass their own sources, fetch and clock. */
-export type RunDeps = { sources?: Sources; fetcher?: Fetcher; clock?: Clock };
+/** Tests and local runs pass their own sources, fetch, clock and e-mail fetch. */
+export type RunDeps = { sources?: Sources; fetcher?: Fetcher; clock?: Clock; mailFetcher?: Fetcher };
 
-export async function runAvailability(input: {
-  market: MarketCode;
-  now: Date;
-  env: JobEnv;
-  deps?: RunDeps;
-}): Promise<JobOutcome> {
+type RunInput = { market: MarketCode; now: Date; env: JobEnv; deps?: RunDeps };
+
+export async function runAvailability(input: RunInput): Promise<JobOutcome> {
+  const outcome = await measureAndLog(input);
+  // Step 9 (plan 6.1): pending alerts go out after the run's transaction, also
+  // after a failed or skipped run, which can raise alerts of its own.
+  if (outcome.status === "succeeded" || outcome.status === "failed" || outcome.status === "skipped") {
+    await sendAlerts(input);
+  }
+  return outcome;
+}
+
+async function sendAlerts(input: RunInput): Promise<void> {
+  try {
+    await withClient(input.env.DATABASE_URL_COLLECTOR, (client) =>
+      sendPendingAlerts(client, {
+        apiKey: input.env.RESEND_API_KEY,
+        now: input.now,
+        timeZone: marketByCode(input.market).timeZone,
+        fetcher: input.deps?.mailFetcher,
+      }),
+    );
+  } catch (error) {
+    // The measurement is saved; the alerts stay pending for the next run and the guard.
+    console.error("availability: sending alerts failed", error);
+  }
+}
+
+async function measureAndLog(input: RunInput): Promise<JobOutcome> {
   const meter = startMeter();
   const clock = input.deps?.clock ?? realClock;
   const market = marketByCode(input.market);
@@ -88,7 +112,7 @@ export async function runAvailability(input: {
     };
     const schema = await skipIfSchemaMismatch(client, request, REQUIRED_SCHEMA);
     if (schema.skipped) {
-      await writeAlerts(client, countryId, null, market.code, day, [
+      await saveAlerts(client, countryId, null, market.code, day, [
         {
           type: "schema_version",
           subject: "-",
@@ -125,7 +149,7 @@ export async function runAvailability(input: {
       await finishRun(client, runId, { status: "failed", ...meter(), errorCodes: [code] });
       // A retry that fails leaves the point without a measurement (plan 8.1).
       if (decision.kind === "retry") {
-        await writeAlerts(client, countryId, runId, market.code, day, [
+        await saveAlerts(client, countryId, runId, market.code, day, [
           {
             type: "measurement_failed",
             subject: decision.point.toISOString(),

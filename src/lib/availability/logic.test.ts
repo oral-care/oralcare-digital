@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { compareSlots, dayIndex, summarize, type Slot } from "./compare";
-import { availabilityStatus, waitingTimeStatus } from "./statuses";
+import { isStale, lastTwoPoints } from "./freshness";
+import { availabilityStatus, clinicStatus, waitingTimeStatus } from "./statuses";
 import { estimateLeadMinutes, measurementWindow, roundUpToFiveMinutes, splitForMuntra } from "./window";
 
 const at = (iso: string) => new Date(iso);
@@ -117,5 +118,40 @@ describe("statuses", () => {
     expect(waitingTimeStatus(4, other)).toBe("long");
     expect(waitingTimeStatus(0, akut)).toBe("short");
     expect(waitingTimeStatus(1, akut)).toBe("long");
+  });
+});
+
+describe("clinicStatus", () => {
+  it("gives the shared status, Mixed for different ones and Not online for none", () => {
+    expect(clinicStatus(["good", "good", null])).toBe("good");
+    expect(clinicStatus(["good", "low"])).toBe("mixed");
+    expect(clinicStatus([null, null])).toBe("notOnline");
+    expect(clinicStatus([])).toBe("notOnline");
+  });
+});
+
+describe("freshness", () => {
+  // Stockholm is UTC+1 in November.
+  it("looks at the two latest passed points, with yesterday's 22 before 06", () => {
+    expect(lastTwoPoints(at("2026-11-02T13:30:00Z"))).toEqual([
+      at("2026-11-02T13:00:00Z"),
+      at("2026-11-02T11:00:00Z"),
+    ]);
+    expect(lastTwoPoints(at("2026-11-02T05:30:00Z"))).toEqual([
+      at("2026-11-02T05:00:00Z"),
+      at("2026-11-01T21:00:00Z"),
+    ]);
+    expect(lastTwoPoints(at("2026-11-02T03:00:00Z"))).toEqual([
+      at("2026-11-01T21:00:00Z"),
+      at("2026-11-01T19:00:00Z"),
+    ]);
+  });
+
+  it("is stale only when neither of them succeeded", () => {
+    const now = at("2026-11-02T13:30:00Z");
+    expect(isStale(now, [at("2026-11-02T11:00:00Z")])).toBe(false);
+    expect(isStale(now, [at("2026-11-02T09:00:00Z")])).toBe(true);
+    // The night alone never makes the data look old.
+    expect(isStale(at("2026-11-02T05:30:00Z"), [at("2026-11-01T21:00:00Z")])).toBe(false);
   });
 });

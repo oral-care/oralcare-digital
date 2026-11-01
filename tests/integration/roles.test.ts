@@ -89,12 +89,13 @@ describe("oc_app", () => {
     await allowed("oc_app", "DELETE FROM auth.sessions WHERE false");
   });
 
-  it("never writes measurements and can't read the admins function", async () => {
+  it("never writes measurements, and reads the admins' addresses for the summary", async () => {
     await refused(
       "oc_app",
       `INSERT INTO availability.site_incident (job_run_id, share_missing) VALUES (1, 0.5)`,
     );
-    await refused("oc_app", "SELECT * FROM core.admin_emails()");
+    await allowed("oc_app", "SELECT * FROM core.admin_emails()");
+    await allowed("oc_app", "UPDATE core.alert SET sent_with = 'summary' WHERE false");
   });
 
   it("runs the retention function", async () => {

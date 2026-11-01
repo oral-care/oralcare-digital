@@ -1,8 +1,9 @@
 import type { Client } from "pg";
 
+import { saveAlerts } from "../runtime/alert-mail";
 import type { RunFinish } from "../runtime/lock";
 import type { Context } from "./context";
-import type { AlertDraft, DailyRow, Evaluation, Source } from "./evaluate";
+import type { DailyRow, Evaluation, Source } from "./evaluate";
 import type { RegistryWrites } from "./registry";
 
 // Step 8 of a measurement (plan 6.1): everything in one transaction, which
@@ -38,7 +39,7 @@ export async function persist(client: Client, input: PersistInput): Promise<bool
 
     const ids = await writeRegistry(client, input);
     await writeMeasurements(client, input, ids);
-    await writeAlerts(
+    await saveAlerts(
       client,
       input.ctx.countryId,
       input.runId,
@@ -446,28 +447,4 @@ async function writeMeasurements(client: Client, input: PersistInput, ids: Ids):
       ],
     );
   }
-}
-
-/** Saved as pending, so a failed send is picked up later; the key makes an event alert once (plan 8.1). */
-export async function writeAlerts(
-  client: Client,
-  countryId: number | null,
-  runId: number | null,
-  marketCode: string,
-  day: string,
-  alerts: AlertDraft[],
-): Promise<void> {
-  const rows = new Map(
-    alerts.map((a) => {
-      const key = `${a.type}:${marketCode}:${a.subject}:${day}`;
-      return [key, { dedupe_key: key, type: a.type, payload: a.payload }];
-    }),
-  );
-  if (rows.size === 0) return;
-  await client.query(
-    `INSERT INTO core.alert (dedupe_key, type, country_id, job_run_id, payload)
-     SELECT dedupe_key, type, $1, $2, payload FROM jsonb_to_recordset($3::jsonb) AS x(dedupe_key text, type text, payload jsonb)
-     ON CONFLICT (dedupe_key) DO NOTHING`,
-    [countryId, runId, JSON.stringify([...rows.values()])],
-  );
 }

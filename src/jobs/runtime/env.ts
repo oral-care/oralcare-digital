@@ -9,6 +9,8 @@ const jobEnvSchema = z.object({
   CRON_SECRET: cronSecret,
   DATABASE_URL_COLLECTOR: databaseUrl,
   DATABASE_URL_APP: databaseUrl,
+  // Until it is set, alerts and the summary wait as pending (plan 8.1).
+  RESEND_API_KEY: z.string().startsWith("re_").min(20).optional(),
 });
 
 export type JobEnv = z.infer<typeof jobEnvSchema>;

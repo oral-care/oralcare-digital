@@ -2,6 +2,8 @@ import { compareSlots, dayIndex, summarize, type Slot } from "@/lib/availability
 import { availabilityStatus, waitingTimeStatus } from "@/lib/availability/statuses";
 import type { MeasurementWindow } from "@/lib/availability/window";
 
+import type { AlertDraft } from "@/lib/alerts/types";
+
 import type { Context } from "./context";
 import type { Pair } from "./pairs";
 import { activatedCaregivers, type Activation } from "./registry";
@@ -55,23 +57,6 @@ export type ComparisonRow = {
   eprSlots: number | null;
   slotsNotOnline: number | null;
 };
-
-export type AlertType =
-  | "measurement_failed"
-  | "schema_version"
-  | "incident"
-  | "low_coverage"
-  | "stopped_early"
-  | "treatment_not_online"
-  | "treatment_withdrawn"
-  | "slots_not_online"
-  | "max_lead_changed"
-  | "window_anomaly"
-  | "format"
-  | "collector_error";
-
-/** The subject makes the dedupe key with type, market and day: one alert per event and day. */
-export type AlertDraft = { type: AlertType; subject: string; payload: Record<string, unknown> };
 
 export type DailyRow = {
   pair: Pair;
