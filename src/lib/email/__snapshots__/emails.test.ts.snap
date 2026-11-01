@@ -1,0 +1,272 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`e-mails > 1-sign-in-code reads as before 1`] = `
+{
+  "preheader": "The code is valid for 10 minutes.",
+  "subject": "Your sign-in code for Oral Care Digital",
+  "text": "Your sign-in code
+
+Enter this code on the sign-in page. It is valid for 10 minutes.
+
+4821 7390
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because this address was entered on digital.oralcaregroup.com.",
+}
+`;
+
+exports[`e-mails > 2-invitation reads as before 1`] = `
+{
+  "preheader": "You have access to Sweden as a viewer.",
+  "subject": "Alex Example invited you to Oral Care Digital",
+  "text": "Hi Sam, you have access to Oral Care Digital
+
+Markets: Sweden
+Role: Viewer
+Sign in with: sam@example.com
+
+Sign in to Oral Care Digital: https://digital.oralcaregroup.com
+
+For security reasons, we don't use passwords. When you sign in, we e-mail you a code.
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because an admin invited you to Oral Care Digital.",
+}
+`;
+
+exports[`e-mails > 3-alert-every-type reads as before 1`] = `
+{
+  "preheader": "14 new alerts from the 22:04 measurement.",
+  "subject": "The 10:00 measurement failed, and 13 more alerts",
+  "text": "MEASURED ON FRI 30 OCT AT 22:04
+
+14 new alerts
+
+* The 10:00 measurement failed
+  The retry at 11:12 also failed. Error: http_503.
+* The 10:00 measurement was skipped
+  The database version (2) doesn't match the code (3).
+* oralcare.se showed no slots for 42% of clinics and treatments
+  Muntra had slots for them. The values are saved as "Could not be measured".
+* Only 88% of clinics and treatments were measured
+  143 of 162. The rest are saved as "Could not be measured".
+* The 08:00 measurement stopped early
+  The daily request budget was used up.
+* The 08:00 measurement stopped early
+  5 requests in a row failed.
+* Akut undersökning is not online at Example Clinic Norr
+  81 slots in Muntra that patients can't book on oralcare.se.
+* Konsultation aligner was removed from oralcare.se
+  It is no longer in the booking menu.
+* 12 slots not online at Example Clinic Söder
+  Tandhygienistbehandling: slots in Muntra that patients can't book on oralcare.se, in two measurements in a row.
+* oralcare.se now takes bookings 60 days ahead
+  It was 90 days.
+* Muntra shows early slots that oralcare.se doesn't
+  4 clinics have slots in Muntra in the next 2 hours that oralcare.se doesn't show.
+* Muntra changed its data format
+  Field data.0.relationships.caregiver: expected object, got undefined, in 3 responses.
+* oralcare.se rejected a request from the collector
+  Tandblekning at Example Clinic Väst.
+* oralcare.se showed a slot before the window
+  Basundersökning at Example Clinic Öst.
+
+Open Oral Care Digital: https://digital.oralcaregroup.com
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because you are an admin in Oral Care Digital.",
+}
+`;
+
+exports[`e-mails > 3-alert-one reads as before 1`] = `
+{
+  "preheader": "81 slots in Muntra that patients can't book on oralcare.se.",
+  "subject": "Akut undersökning is not online at Example Clinic Norr",
+  "text": "MEASURED TODAY AT 08:04
+
+1 new alert
+
+* Akut undersökning is not online at Example Clinic Norr
+  81 slots in Muntra that patients can't book on oralcare.se.
+
+Open Oral Care Digital: https://digital.oralcaregroup.com
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because you are an admin in Oral Care Digital.",
+}
+`;
+
+exports[`e-mails > 3-alert-three reads as before 1`] = `
+{
+  "preheader": "3 new alerts from the 08:04 measurement.",
+  "subject": "Akut undersökning is not online at Example Clinic Norr, and 2 more alerts",
+  "text": "MEASURED TODAY AT 08:04
+
+3 new alerts
+
+* Akut undersökning is not online at Example Clinic Norr
+  81 slots in Muntra that patients can't book on oralcare.se.
+* 12 slots not online at Example Clinic Söder
+  Tandhygienistbehandling: slots in Muntra that patients can't book on oralcare.se, in two measurements in a row.
+* oralcare.se now takes bookings 60 days ahead
+  It was 90 days.
+
+Open Oral Care Digital: https://digital.oralcaregroup.com
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because you are an admin in Oral Care Digital.",
+}
+`;
+
+exports[`e-mails > 4-summary reads as before 1`] = `
+{
+  "preheader": "9 of 9 measurements, 99% coverage, backup done.",
+  "subject": "Oral Care Digital, Sat 31 Oct: all measurements ran",
+  "text": "SATURDAY 31 OCTOBER
+
+All measurements ran
+
+Measurements: 9 of 9
+Coverage: 99%
+Backup: Done
+
+NEEDS ATTENTION
+
+* The Vercel token expires on Mon 1 Nov
+  Deploys stop when it expires.
+
+AVAILABILITY IN SWEDEN
+
+Good availability: 6 clinics
+Mixed availability: 11 clinics
+Low availability: 8 clinics
+Not online: 5 clinics
+
+WAITING TIME IN SWEDEN
+
+Short waiting time: 5 clinics
+Mixed waiting time: 14 clinics
+Long waiting time: 6 clinics
+Not online: 5 clinics
+
+SLOTS NOT ONLINE
+
+Clinics with slots in Muntra that patients can't book: 5 clinics
+
+SERVICES AND USAGE
+
+Scheduled jobs: 11 of 11 ran
+Neon database: 31% of 1 GB
+Neon traffic this month: 18% of 5 GB
+Resend e-mails: 4 of 100
+Vercel CPU this month: 8% of 4 hours
+
+Open Oral Care Digital: https://digital.oralcaregroup.com
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because you are an admin in Oral Care Digital.",
+}
+`;
+
+exports[`e-mails > 4-summary-every-row reads as before 1`] = `
+{
+  "preheader": "7 of 9 measurements, 91% coverage, no backup.",
+  "subject": "Oral Care Digital, Sat 31 Oct: 2 measurements are missing",
+  "text": "SATURDAY 31 OCTOBER
+
+2 measurements are missing
+
+Measurements: 7 of 9
+Coverage: 91%
+Backup: Missing
+
+NEEDS ATTENTION
+
+* 2 measurements are missing
+  12:00, 14:00. The retries failed too.
+* The backup is 31 hours old
+  The last backup finished Fri 30 Oct 03:41.
+* No backup has finished yet
+  The backup runs every night at 02:30 UTC.
+* Neon database is at 62% of its limit
+  620 MB of 1 GB.
+* The Vercel token expires on Mon 1 Nov
+  Deploys stop when it expires.
+* The daily limit for sign-in codes was reached at 15:20
+  Nobody could get a code until midnight UTC.
+* Alex Example hasn't signed in for 12 months
+  Admins are never removed automatically.
+* A database role has unexpected rights
+  oc_collector: may delete from core.clinic.
+* 12 slots not online at Example Clinic Söder
+  Tandhygienistbehandling: slots in Muntra that patients can't book on oralcare.se, in two measurements in a row.
+
+AVAILABILITY IN SWEDEN
+
+Good availability: 6 clinics
+Mixed availability: 11 clinics
+Low availability: 8 clinics
+Not online: 5 clinics
+
+WAITING TIME IN SWEDEN
+
+Short waiting time: 5 clinics
+Mixed waiting time: 14 clinics
+Long waiting time: 6 clinics
+Not online: 5 clinics
+
+SLOTS NOT ONLINE
+
+Clinics with slots in Muntra that patients can't book: 0 clinics
+
+CHANGES IN THE OFFERING
+
+Example Clinic 1 can now be booked for Tandblekning: 
+Example Clinic 2 can now be booked for Tandblekning: 
+Example Clinic 3 can now be booked for Tandblekning: 
+Example Clinic 4 can now be booked for Tandblekning: 
+Example Clinic 5 can now be booked for Tandblekning: 
+Example Clinic 6 can now be booked for Tandblekning: 
+Example Clinic 7 can now be booked for Tandblekning: 
+Example Clinic 8 can now be booked for Tandblekning: 
+Example Clinic 9 can now be booked for Tandblekning: 
+Example Clinic 10 can now be booked for Tandblekning: 
+2 more changes: 
+
+SERVER ERRORS IN THE APP
+
+3 errors: 
+
+SERVICES AND USAGE
+
+Scheduled jobs: 10 of 11 ran
+Neon database: 62% of 1 GB
+Resend e-mails: 27 of 100
+
+Open Oral Care Digital: https://digital.oralcaregroup.com
+
+--
+
+Oral Care Group – Digital · digital@oralcaregroup.com
+
+You get this e-mail because you are an admin in Oral Care Digital.",
+}
+`;

@@ -1,6 +1,6 @@
 # Oral Care Digital: byggspecifikation
 
-Version 6.2, 2026-10-31. Ägare: Digital, Oral Care Group. Status: för godkännande. Inget är byggt. Dokumentet innehåller inga personuppgifter, eftersom repot är publikt i början.
+Version 6.5, 2026-11-01. Ägare: Digital, Oral Care Group. Status: för godkännande. Inget är byggt. Dokumentet innehåller inga personuppgifter, eftersom repot är publikt i början.
 
 Det här dokumentet beskriver exakt allt appen ska göra: sidor, regler, insamling, jobb, mejl, databas, inloggning, säkerhet, kodstruktur, tester, inställningar och steg. Utseendet följer prototypen, som finns lokalt (avsnitt 13.4). Prototypen är bara underlag för utseende och innehåll. Koden byggs från grunden.
 
@@ -75,7 +75,7 @@ Appen byggs från början för Vercel Pro och ett privat repo, men driftsätts f
 ### 3.1 Vem som kommer in
 
 - **Bara inbjudna.** Ingen kan skapa ett konto själv.
-- **Koncernens domäner:** `oralcare.se` (Sverige), `octannklinikker.no` (Norge), `oralcare.dk` (Danmark) och `oralcare.nl` (Nederländerna). Listan ligger i koden och bekräftas av IT i steg 3.
+- **Koncernens domäner:** `oralcare.se` (Sverige), `octannklinikker.no` (Norge), `oralcare.dk` (Danmark) och `oralcare.nl` (Nederländerna). Listan ligger i koden och bekräftas av dig i steg 3, eftersom du hanterar koncernens domäner.
 - **Externa byråer** kan bjudas in med en adress utanför koncernens domäner, men bara till Tracking Framework. Ett sådant konto kan aldrig få en vy med data om kliniker eller patienter. Det kontrolleras när inbjudan skapas, vid varje anrop och av en regel i databasen.
 - **Andra adresser** får samma svar som inbjudna, men ingen kod. Då kan ingen skicka koder till påhittade adresser.
 
@@ -310,7 +310,7 @@ Texterna exakt som de ska stå. En ny rad i texten är en radbrytning i rutan.
 
 - **Lokal styling är förbjuden.** Färg, typsnitt, textstorlek, avstånd, rundning och skugga kommer alltid från design tokens. Inga värden skrivs direkt i en komponent.
 - **oralcare.se:s tokens kopieras en gång** till `src/styles/oralcare-tokens.css` när bygget börjar: blocken `@theme inline`, `:root` och `@utility focus-ring` ur oralcare.se:s `src/app/globals.css`. Det mörka temat tas inte med. Sedan finns ingen koppling till oralcare.se, och du uppdaterar tokens själv när det behövs.
-- **Appens egna tokens** finns i `src/styles/app-tokens.css` och får bara peka på oralcare.se:s tokens, till exempel `--status-low-bg: var(--color-oc-orange-50)` och `--chart-2: var(--color-oc-green-500)`. Där finns statusarnas färger och grafens sju linjefärger. Inga nya värden.
+- **Appens egna tokens** finns i `src/styles/app-tokens.css` och pekar på oralcare.se:s tokens, till exempel `--status-low-bg: var(--color-oc-orange-50)` och `--chart-2: var(--color-oc-green-500)`. Där finns statusarnas färger och grafens sju linjefärger. Det enda egna värdet är `--attention-text: #be4310`, den mörkorange texten för det som kräver åtgärd, som oralcare.se saknar.
 - **`src/app/globals.css`** innehåller bara importerna och grundstilen, som i oralcare.se.
 - **Komponenterna** är shadcn-komponenterna från oralcare.se i `src/components/ui/`, med commit-id överst, och Tailwind-klasser som kommer från tokens.
 - **Grafen** får sina färger som CSS-variabler, till exempel `var(--chart-1)`, aldrig som färgkoder.
@@ -508,6 +508,8 @@ Larmen samlas. En mätning som ger nya larm skickar **ett** mejl med alla, ett l
 - **Högst 3 larmmejl per dygn.** Larm som kommer efter det står i nästa dagliga sammanfattning och räknas då som skickade.
 - **Sparas först, skickas sedan.** Varje larm sparas i `core.alert` i samma transaktion som mätningen, med en unik nyckel för händelsen (typ, klinik och behandling eller jobb, och dag) och status `pending`. Efter transaktionen skickas ett mejl med alla larm som är `pending`, och de får status `sent` eller `failed`. Vakten och nästa mätning skickar det som fortfarande är `pending` eller `failed`. Så går inget larm förlorat, och samma händelse larmar bara en gång.
 - **Vaktens larm** står inte i larmmejlen utan under "Needs attention" i den dagliga sammanfattningen (avsnitt 8.2).
+- **Taket räknas** med kolumnen `sent_with` i `core.alert` (`alert` eller `summary`): ett larmmejl är alla larm som skickades i samma ögonblick. Larmmejlets `Idempotency-Key` byggs av larmens id, så ett omförsök med samma larm skickar aldrig två gånger.
+- **Innan det finns en admin** (steg 3) eller en API-nyckel för Resend väntar larmen som `pending` och skickas när det går.
 
 | Larm                      | När                                                                                             | Rubrikrad                                                                                       | Faktarad                                                                                             |
 | ------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -534,22 +536,22 @@ Skickas av vakten till varje admin för sig, en gång per dygn, med innehållet 
 - Measurements (till exempel 9 of 9, och hur många som var sena), Coverage och Backup;
 - **Needs attention**, bara när det finns något: vaktens larm och larm som inte fick plats i larmmejlen. En rad per larm, med rubrikrad och faktarad som i avsnitt 8.1:
 
-  | Larm             | Rubrikrad                                              | Faktarad                                                        |
-  | ---------------- | ------------------------------------------------------ | --------------------------------------------------------------- |
-  | Mätningar saknas | {N} measurements are missing                           | {tider}. The retries failed too.                                |
-  | Backup           | The backup is {N} hours old                            | The last backup finished {tid}.                                 |
-  | Gräns            | {tjänst} is at {P}% of its limit                       | Neon storage, Neon traffic or, on Hobby, Vercel CPU this month. |
-  | Vercel-nyckel    | The Vercel token expires on {datum}                    | Deploys stop when it expires.                                   |
-  | Kodmejl          | The daily limit for sign-in codes was reached at {tid} | Nobody could get a code until midnight UTC.                     |
-  | Admin            | {namn} hasn't signed in for 12 months                  | Admins are never removed automatically.                         |
-  | Rättigheter      | A database role has unexpected rights                  | {roll}: {skillnad}.                                             |
+  | Larm             | Rubrikrad                                                | Faktarad                                                                                                                                  |
+  | ---------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+  | Mätningar saknas | {N} measurements are missing                             | {tider}. The retries failed too.                                                                                                          |
+  | Backup           | The backup is {N} hours old / No backup has finished yet | The last backup finished {tid}. / The backup runs every night at 02:30 UTC.                                                               |
+  | Gräns            | {tjänst} is at {P}% of its limit                         | {använt} of {gräns}. Tjänsten är Neon database, Neon traffic eller, på Hobby, Vercel CPU.                                                 |
+  | Vercel-nyckel    | The Vercel token expires on {datum}                      | Deploys stop when it expires.                                                                                                             |
+  | Kodmejl          | The daily limit for sign-in codes was reached at {tid}   | Nobody could get a code until midnight UTC. Tiden är när `core.reserve_email` först nekade en kod det UTC-dygnet (`email_send.capped_at`) |
+  | Admin            | {namn} hasn't signed in for 12 months                    | Admins are never removed automatically. Larmet sparar bara användarens id; namnet läses in när sammanfattningen skrivs                    |
+  | Rättigheter      | A database role has unexpected rights                    | {roll}: {skillnad}.                                                                                                                       |
 
 - Availability i varje marknad med data: Good, Mixed, Low och Not online;
 - Waiting time: Short, Mixed, Long och Not online;
 - Slots not online: antal kliniker;
 - gårdagens ändringar i utbudet;
 - antal serverfel i appen, bara om det fanns några (avsnitt 12);
-- **Services and usage:** hur många av gårdagens schemalagda jobb som körde (från körloggen), Neon-databasens storlek av 1 GB, Neons trafik denna månad av 5 GB (från backupens okomprimerade storlek), gårdagens mejl av Resends 100 (från `email_send`) och, på Hobby, insamlingens CPU-tid denna månad av 4 timmar. Om CPU-tiden visas styrs av inställningen `vercel_cpu_budget`, som är 4 timmar på Hobby och tom på Pro;
+- **Services and usage:** hur många av gårdagens schemalagda jobb som körde (från körloggen: varje marknads 9 schemapunkter, vakten och backupen, två på söndagar; körloggen ser inte cron-anrop som inte hade något att göra), Neon-databasens storlek av 1 GB, Neons trafik denna månad av 5 GB (från backupens okomprimerade storlek), gårdagens mejl av Resends 100 (från `email_send`) och, på Hobby, insamlingens CPU-tid denna månad av 4 timmar. Om CPU-tiden visas styrs av inställningen `vercel_cpu_budget`, som är 4 timmar på Hobby och tom på Pro;
 - knappen "Open Oral Care Digital".
 
 Neons CU-timmar går inte att läsa på Neon Free och följs inte.
@@ -583,7 +585,10 @@ Visas överst i innehållet när ingen av de två senaste passerade schemapunkte
   - **Inbjudan:** inbjudan sparas bara om Resend tog emot mejlet. Annars, eller när dagens kvot för inbjudningar är slut, visas vid formuläret: "The invitation couldn't be sent. Try again later." Texten saknas i prototypen och är ett förslag.
   - **Larm och sammanfattning:** skickas om av vakten och nästa mätning (avsnitt 8.1 och 8.2).
 - **Studsar:** en adress med en permanent studs eller ett klagomål får inga mejl. En ny inbjudan från en admin tar bort spärren, eftersom admin då har bekräftat adressen.
-- **Kod och tester:** mejlen skrivs som funktioner i `src/lib/email/`, med texterna nedan i `messages/en.json`, och testas med ögonblicksbilder.
+- **Kod och tester:** mejlen skrivs som funktioner i `src/lib/email/`, med texterna nedan i `messages/en.json` i ICU-format, formaterade med `intl-messageformat` (samma format som next-intl, utan React), och testas med ögonblicksbilder.
+- **Färgerna** skrivs av `scripts/email-tokens.mjs` från tokenfilerna till `src/lib/email/tokens.ts`, eftersom mejlklienter inte läser CSS-variabler. CI stoppar om filen inte stämmer med tokenfilerna. Prototypens mörkorange text för Slots not online är appens egen token `--attention-text` (avsnitt 4.14).
+- **Resend** anropas med `fetch` mot API:ts batch-endpoint, utan SDK, med samma tidsgräns och `User-Agent` som källorna.
+- **Vaktens fynd** som inte kunde skickas ersätts av nästa dags kontroller, så sammanfattningen visar bara dagens fynd och de mätningslarm som fortfarande väntar.
 - **Förhandsvisning:** `pnpm email:preview` skriver alla mejl, med varje larmtyp och varje rad i "Needs attention", med påhittad data till HTML-filer i `.email-preview/`, som inte checkas in. I steg 2 och 3 skickas varje mejl till dig och kontrolleras i Outlook (dator, webb och telefon), Gmail och Apple Mail, i ljust och mörkt läge.
 
 ### 9.1 Texterna
@@ -645,7 +650,7 @@ Visas överst i innehållet när ingen av de två senaste passerade schemapunkte
 | `schema_state`              | En rad med `schema_version` och `min_code_schema`, som migreringarna sätter (avsnitt 7)                                                                                                                                                            |
 | `config_version`            | Inställningar med historik: incidentgräns, `vercel_cpu_budget`, `vercel_token_expires_on` och nödstoppet `login_paused`                                                                                                                            |
 | `alert`                     | Larm från alla moduler: unik nyckel för händelsen, typ, innehåll utan personuppgifter, status (`pending`, `sent` eller `failed`) och tider                                                                                                         |
-| `email_send`                | Antal mejl per UTC-dygn och mejltyp, räknat per mottagare. Ökas bara med funktionen `core.reserve_email(typ, antal)`, som nekar när taket är nått (avsnitt 11)                                                                                     |
+| `email_send`                | Antal mejl per UTC-dygn och mejltyp, räknat per mottagare, och när taket först nekade ett utskick (`capped_at`). Ändras bara med funktionen `core.reserve_email(typ, antal)`, som nekar när taket är nått (avsnitt 11)                             |
 | `app_error`                 | Serverfel i appen: route, felkod, ett hash av meddelandet och tid. Inga personuppgifter                                                                                                                                                            |
 
 Giltighetstider får inte överlappa (exclusion constraints med `btree_gist`). Inget tas bort utom det som gallras (avsnitt 10.4).
@@ -688,14 +693,14 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
 - **Inga partitioner.** Med cirka 1-2 miljoner rader per år räcker vanliga tabeller med index. Gallringen frigör plats som databasen återanvänder.
 - **Gallring** körs av vakten varje dygn:
   - i `core` och `availability` med funktionen `core.prune()`, i omgångar om 5 000 rader: `slot_list` efter 90 dagar, `measurement` och `comparison` efter 25 månader (så att samma period förra året kan jämföras), `app_error` efter 30 dagar och skickade larm efter 12 månader. Dagsvärden, register och ändringar sparas;
-  - i `auth` med appens roll: utgångna koder och sessioner, `login_throttle` äldre än 7 dagar, inloggningshändelser efter 90 dagar, admin-händelser efter 12 månader, och viewers som inte har loggat in på 12 månader (`user.removed` skrivs). Admins tas aldrig bort automatiskt. Vakten larmar i stället.
+  - i `auth` med appens roll: utgångna koder och sessioner, `login_throttle` äldre än 7 dagar, inloggningshändelser efter 90 dagar, admin-händelser efter 12 månader, och viewers som inte har loggat in på 12 månader (`user.removed` skrivs med en kopia av adressen, och användarens inbjudan, spärrar och kod tas bort som vid borttagning i Users). Händelsernas namn finns i `src/lib/audit.ts`. Admins tas aldrig bort automatiskt. Vakten larmar i stället.
 - **Storlek:** cirka 250-350 MB första året. Mäts i steg 2. Larm vid 60 och 80 procent av 1 GB.
 
 | Roll           | Används av                      | Rättigheter                                                                                                                                                                                                                                                                                             |
 | -------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `oc_migrator`  | Migreringarna i driftsättningen | Äger schemana och funktionerna. Finns bara som hemlighet i GitHub-miljön `production`, aldrig i Vercel, eftersom Vercel ger varje miljövariabel till den körande appen                                                                                                                                  |
 | `oc_collector` | Insamlingen                     | Läsa `core` och `availability`. Lägga till rader i registret, körloggen, mätningar, jämförelser, tider, dagsvärden, incidenter, ändringar och larm. Ändra bara körstatus, larmstatus, dagsvärden och slutdatum. Köra `core.reserve_email` och `core.admin_emails`. Ingen borttagning och inget i `auth` |
-| `oc_app`       | Appen och vakten                | Läsa `core` och `availability`. Läsa och skriva `auth`. Skriva vaktens körlogg, larm, larmstatus och `app_error`. Köra `core.reserve_email` och `core.prune`                                                                                                                                            |
+| `oc_app`       | Appen och vakten                | Läsa `core` och `availability`. Läsa och skriva `auth`. Skriva vaktens körlogg, larm, larmstatus och `app_error`. Köra `core.reserve_email`, `core.prune` och, för sammanfattningen, `core.admin_emails`                                                                                                |
 | `oc_backup`    | Backupen och den andra vakten   | Läsa `core` och `availability`, även sekvenserna, och lägga till backupens egna rader i körloggen                                                                                                                                                                                                       |
 
 - **Funktionerna** `core.admin_emails()`, `core.reserve_email(typ, antal)` och `core.prune()` är `security definer`, ägs av migreringsrollen, har `SET search_path = pg_catalog, pg_temp` och använder bara schemakvalificerade namn. `prune()` tar inga argument, räknar själv ut gränserna och tar aldrig bort något nyare än 90 dagar. Rätten att köra dem tas bort från PUBLIC, både som standard (`ALTER DEFAULT PRIVILEGES FOR ROLE oc_migrator REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`) och per funktion, och ges bara till rollerna i tabellen.
@@ -745,7 +750,7 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
   - antalet admins räknas med `SELECT ... FOR UPDATE`, så att två admins inte kan ta bort eller degradera varandra samtidigt;
   - ändring ersätter användarens rader i `user_view` och `user_market` och skriver `user.updated` med före och efter;
   - borttagning tar bort raden i `users` (resten följer med via `ON DELETE CASCADE`), tar bort inbjudningar, spärrar och adressens rader i `verifications`, så att en redan skickad kod slutar gälla, och skriver `user.removed`. `email_suppression` behålls.
-- **Resend:** studsar och klagomål tas emot på `/api/webhooks/resend`. Signaturen kontrolleras på den råa kroppen med 5 minuters tidstolerans, och samma `svix-id` hanteras bara en gång. Bara permanenta studsar och klagomål spärrar adressen.
+- **Resend:** studsar och klagomål tas emot på `/api/webhooks/resend`. Signaturen (Svix) kontrolleras på den råa kroppen med 5 minuters tidstolerans. Spärren läggs in så att samma leverans kan komma flera gånger utan att något ändras. Bara permanenta studsar och klagomål spärrar adressen. Utan `RESEND_WEBHOOK_SECRET` svarar routen 503.
 
 ---
 
@@ -813,10 +818,13 @@ oralcare-digital/
     check-em-dash.mjs
     check-migrations.mjs              stoppar borttagning och namnbyte utanför städmigreringar
     email-tokens.mjs                  skriver mejlens tokens från tokenfilerna
-    email-preview.mjs                 skriver alla mejl med testdata till .email-preview/ (pnpm email:preview)
+    email-preview.ts                  skriver alla mejl med testdata till .email-preview/ (pnpm email:preview)
+    watch.ts                          den andra vakten, körs av watch.yml
     backup/
       backup.sh                       pg_dump, kontroll och kryptering
-      restore-check.sh                läser in i en tom Postgres och jämför med körloggen
+      scratch.ts                      en tom kopia av databasen med roller och migreringar, att kontrollera mot
+      restore.sh                      återställer veckans och nattens backuper, med den privata nyckeln
+      tables.sh                       vilka tabeller backupen tar och hur
       backup-key.pub                  backupens publika nyckel
     sql/
       create-roles.sql                roller, scheman och rättigheter, körs en gång i Neons SQL Editor
@@ -867,7 +875,7 @@ oralcare-digital/
       request.ts                      språk och tidszonen Europe/Stockholm
     styles/
       oralcare-tokens.css             tokens kopierade från oralcare.se
-      app-tokens.css                  appens tokens, bara pekare till oralcare.se:s
+      app-tokens.css                  appens tokens: pekare till oralcare.se:s och den mörkorange texten
     jobs/                             schemalagda jobb, en mapp per jobb, utan server-only
       runtime/
         env.ts                        jobbens miljövariabler med zod
@@ -901,7 +909,8 @@ oralcare-digital/
       auth/                           Better Auth, permissions.ts, spärrar och sessionens tak, server-only
       users/                          inbjudan, ändring och borttagning (server actions), server-only
       alerts/                         larmens regler och nycklar, ren kod
-      email/                          de fyra mejlen och mejlens tokens, ren kod
+      email/                          de fyra mejlen, mejlens tokens och kontrollen av Resends webhook, ren kod
+      audit.ts                        händelserna i auth.audit_event, ren kod
       security/
         csp.ts
         headers.ts
@@ -964,7 +973,7 @@ Samma versioner som oralcare.se har i dag (commit `79625c8`, 2026-10-28):
 | ESLint, eslint-config-next    | 9.39.5, 16.3.4                                                  |
 | Prettier, husky, lint-staged  | 3.9.6, 9.1.7, 16.4.0                                            |
 
-**Tillägg**, versioner väljs när bygget börjar och följer 3-dagarsregeln: `zod`, `drizzle-orm`, `drizzle-kit`, `pg`, `@vercel/functions`, `@date-fns/tz`, `better-auth`, `resend`, `recharts` (via shadcn chart), `@tanstack/react-table`, `tsx`, `vercel`, `vitest`, `@playwright/test`, `eslint-plugin-boundaries` och `embedded-postgres` för testerna. I CI också gitleaks, `pg_dump` och `psql` av samma huvudversion som Neon-databasen, och `age`, alla låsta.
+**Tillägg**, versioner väljs när bygget börjar och följer 3-dagarsregeln: `zod`, `drizzle-orm`, `drizzle-kit`, `pg`, `@vercel/functions`, `@date-fns/tz`, `better-auth`, `intl-messageformat`, `recharts` (via shadcn chart), `@tanstack/react-table`, `tsx`, `vercel`, `vitest`, `@playwright/test`, `eslint-plugin-boundaries` och `embedded-postgres` för testerna. I CI också gitleaks, `pg_dump` och `psql` av samma huvudversion som Neon-databasen, och `age`, alla låsta.
 
 **Ett avsteg från oralcare.se:** databasdrivrutinen. oralcare.se använder Neons HTTP-drivrutin (`@neondatabase/serverless`), som inte klarar transaktioner med låsning. Users behöver det, och jobben behöver en vanlig anslutning. Appen använder därför `pg` överallt, som Neon rekommenderar på Vercel med Fluid compute (avsnitt 10.5).
 
@@ -1080,7 +1089,9 @@ Vid varje pull request och push, utan hemligheter: installation med låst lockfi
 ### 16.2 Backup
 
 - **Varje natt:** rader som tillkommit sedan förra backupen i tabellerna som bara växer (med `COPY` på löpnumret), och fullständiga kopior av de små tabellerna som ändras (register, körlogg, gränser, inställningar, ändringar och larm). Körs som `oc_backup` mot den icke-poolade adressen. `auth` ingår aldrig, så efter en återställning bjuder admin in användarna igen.
-- **Varje vecka:** full backup av `core` och `availability` med `pg_dump`. Strömmen delas med `tee`: en del krypteras med `age` till fil, den andra läses in i en tom Postgres i jobbet och kontrolleras mot körloggen. Filen sparas bara om kontrollen går igenom. Kontrollen läser också in veckans nattliga backuper ovanpå, så att även de är testade.
+- **Varje vecka:** full backup av `core` och `availability` med `pg_dump`. Strömmen delas med `tee`: en del krypteras med `age` till fil, den andra läses in i en tom kopia av databasen i jobbet och kontrolleras mot körloggen. Filen sparas bara om kontrollen går igenom.
+- **Kontrollen** görs för varje backup, också den nattliga: den tomma kopian är en Postgres 18 i jobbet med rollerna och alla migreringar, så backupen läses in med de riktiga reglerna och främmande nycklarna. Jobbet kan inte läsa äldre backuper, eftersom den privata nyckeln bara finns offline, så varje backup kontrolleras på egen hand innan den krypteras.
+- **Återställning** med `scripts/backup/restore.sh`: den senaste veckobackupen, de små tabellerna från den senaste nattbackupen och de nya raderna från varje nattbackup efter veckobackupen. Skriptet bygger schemana med migreringarna, frågar efter målets värdnamn och vägrar produktionsdatabasen.
 - **Kryptering** med `age` till en publik nyckel i repot, i samma rör som `pg_dump`, innan något skrivs till disk. Den privata nyckeln förvaras offline av dig och en andra person.
 - **Lagring** som filer i GitHub Actions i 14 dagar (`retention-days: 14`), under 250 MB totalt. Filerna innehåller varken inloggningsdata eller behandlare. Så länge repot är publikt kan alla med ett GitHub-konto läsa loggarna och ladda ner filerna, men ingen kan läsa backupen utan den privata nyckeln, och loggarna innehåller aldrig data, adresser eller hemligheter.
 - **Trafik från Neon:** varje backup räknas mot Neons 5 GB per månad. Den okomprimerade strömmen mäts före komprimeringen och sparas i körloggen, eftersom det är den Neon räknar. Nattens backup är liten. Veckans fulla backup växer med databasen och står för det mesta.
@@ -1144,18 +1155,19 @@ Görs när IT har uppgraderat, på en dag, utan kodändringar:
 - Domänen `oralcaregroup.com` verifierad, med avsändaren `digital@oralcaregroup.com`.
 - En API-nyckel med bara rätt att skicka från domänen.
 - Spårning av öppningar och klick av.
-- Webhook till `https://digital.oralcaregroup.com/api/webhooks/resend` för studsar och klagomål.
+- Webhook till `https://digital.oralcaregroup.com/api/webhooks/resend` för studsar och klagomål (`email.bounced` och `email.complained`). Lades till 2026-11-01, när domänen redan pekade på Vercel. Signeringshemligheten ligger i Vercel som `RESEND_WEBHOOK_SECRET`.
+- Domänen lades till 2026-10-31 i regionen eu-west-1 (Irland). Spårning av klick och öppningar kräver en egen spårningsdomän och är därför av.
 
 ### 17.5 DNS för oralcaregroup.com
 
-| Post                    | Värde                                                      |
-| ----------------------- | ---------------------------------------------------------- |
-| `digital` CNAME         | Vercels adress för projektet                               |
-| `resend._domainkey` TXT | Resends DKIM-nyckel                                        |
-| `send` MX och TXT (SPF) | Resends returadress                                        |
-| DMARC                   | Huvuddomänens befintliga policy, som kontrolleras i steg 2 |
+| Post                           | Värde                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `digital` CNAME                | Vercels adress för projektet                                                                  |
+| `resend._domainkey` TXT        | Resends DKIM-nyckel                                                                           |
+| `rsend` CNAME och `send` CNAME | Resends returadress och SPF (Resend Forge, eu-west-1)                                         |
+| `_dmarc` TXT                   | `v=DMARC1; p=none;`. oralcaregroup.com saknade DMARC 2026-10-31. `p=none` blockerar ingenting |
 
-Huvuddomänens befintliga MX- och SPF-poster rörs inte.
+Du lägger in posterna själv i webb.se:s domänhantering, där du hanterar koncernens domäner. Huvuddomänens befintliga MX- och SPF-poster rörs inte. Listan med alla värden ligger i `oralcare-data/docs/dns-till-it.md`, utanför det publika repot.
 
 ---
 
@@ -1184,6 +1196,7 @@ Under fas 1 har ingen tjänst ett betalkort som debiteras automatiskt, och det k
 - Steg 2 startar så tidigt som möjligt, eftersom historik inte kan tas fram i efterhand. Därför är hela datamodellen klar i steg 1.
 - Ingen sida som visar riktig data driftsätts innan steg 3 är godkänt. Steg 4 byggs med påhittad testdata, lokalt och i CI.
 - Varje steg stäms av med dig innan nästa börjar.
+- Steg 3 och 4 väntar inte på insamlingens 7 dygn. De byggs direkt efter resten av steg 2, och de 7 dygnen bockas av när de har gått. Appen lanseras när steg 3 och 4 är godkända.
 
 ---
 
@@ -1193,7 +1206,7 @@ Under fas 1 har ingen tjänst ett betalkort som debiteras automatiskt, och det k
 - **IT, om cirka två veckor:** Vercel Pro för teamet `oralcare` och GitHub Team för organisationen `oral-care`, och en månadsgräns för Vercels utgiftstak. Sedan görs bytet i avsnitt 16.3.
 - **Ägaren av GitHub-organisationen `oral-care`:** repot och inställningarna i avsnitt 17.3.
 - **Ägaren av Vercel-teamet `oralcare`:** projektet, en nyckel för driftsättningen med utgångsdatum (datumet sparas som inställning, så att vakten kan varna), Neon via Marketplace, förhandsskydd och brandväggsregeln.
-- **IT, eller den som har DNS för oralcaregroup.com:** posterna i avsnitt 17.5, och bekräftelse av koncernens domäner för inloggningen.
+- **Du:** posterna i avsnitt 17.5 i webb.se:s domänhantering, och bekräftelse av koncernens domäner för inloggningen.
 - **IT:** om Better Auth kan få samma snabbspår förbi 3-dagarsregeln som Next.js vid säkerhetsfixar.
 - **Den som ansvarar för dataskydd:** en kort bedömning av uppgifterna om användarna.
 
@@ -1223,7 +1236,7 @@ flowchart LR
     staff["Admins och viewers<br/>koncernens domäner"]
     agency["Externa byråer<br/>bara Tracking Framework"]
   end
-  dns["DNS oralcaregroup.com<br/>hos IT"]
+  dns["DNS oralcaregroup.com<br/>hos webb.se"]
   subgraph vercel["Vercel, teamet oralcare, fra1<br/>Hobby nu, Pro efter bytet"]
     app["oralcare-digital<br/>sidor och inloggning<br/>insamlingen varje timme<br/>vakten kl 09 UTC"]
   end
@@ -1298,7 +1311,7 @@ Sorterat med det allvarligaste först.
 | Neon                          | Databasen pausar efter 5 minuter utan anrop                                                                                                   | Första sidvisningen tar någon sekund extra                    | Tidsgräns och omförsök vid anslutningen                                                                                                                                                |
 | Neon                          | Återställning bakåt i tiden räcker bara 6 timmar                                                                                              | En felaktig migrering upptäcks för sent                       | En gren av `main` skapas före varje driftsättning med nya migreringar, och de tre senaste sparas                                                                                       |
 | Vercel                        | Loggarna sparas bara en kort tid                                                                                                              | Felsökning blir svår                                          | Körloggen i databasen                                                                                                                                                                  |
-| DNS hos IT                    | En ändrad post                                                                                                                                | Appen eller mejlen slutar fungera                             | Posterna står i avsnitt 17.5 och stäms av med IT                                                                                                                                       |
+| DNS hos webb.se               | En ändrad post                                                                                                                                | Appen eller mejlen slutar fungera                             | Posterna står i avsnitt 17.5, och du hanterar dem själv                                                                                                                                |
 | Better Auth                   | En säkerhetsfix väntar på 3-dagarsregeln                                                                                                      | En känd sårbarhet är öppen i upp till 3 dygn                  | Snabbspår från IT, som för Next.js                                                                                                                                                     |
 | Data                          | Databasen går förlorad                                                                                                                        | All historik                                                  | Krypterad backup varje natt, full backup varje vecka, och återställningen testas varje kvartal                                                                                         |
 

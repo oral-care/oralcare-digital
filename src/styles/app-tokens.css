@@ -1,5 +1,7 @@
-/* This app's own tokens (plan 4.14). They only point at the tokens copied from
-   oralcare.se and never add values of their own. The status colours and the
+/* This app's own tokens (plan 4.14). They point at the tokens copied from
+   oralcare.se. The only value of its own is the dark orange text for what
+   needs action, which oralcare.se doesn't have. The status colours and the
    chart's seven line colours are added with the pages in step 4. */
 :root {
+  --attention-text: #be4310;
 }

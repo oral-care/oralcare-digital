@@ -235,6 +235,7 @@ export const configVersion = core.table(
 );
 
 export const ALERT_STATUSES = ["pending", "sent", "failed"] as const;
+export const ALERT_SENT_WITH = ["alert", "summary"] as const;
 
 // Alerts from every module, saved in the run's transaction and sent after it
 // (plan 8.1). The dedupe key makes one event alert once.
@@ -253,8 +254,14 @@ export const alert = core.table(
     sentAt: timestamp("sent_at", { withTimezone: true }),
     attempts: smallint("attempts").notNull().default(0),
     lastErrorCode: text("last_error_code"),
+    // Sent in an alert e-mail or in the daily summary, so the cap of 3 alert
+    // e-mails a day can be counted (plan 8.1).
+    sentWith: text("sent_with"),
   },
-  (t) => [check("alert_status", sql`${t.status} in ('pending', 'sent', 'failed')`)],
+  (t) => [
+    check("alert_status", sql`${t.status} in ('pending', 'sent', 'failed')`),
+    check("alert_sent_with", sql`${t.sentWith} is null or ${t.sentWith} in ('alert', 'summary')`),
+  ],
 );
 
 // Counted per UTC day, type and recipient, only through core.reserve_email (plan 11).
@@ -264,6 +271,8 @@ export const emailSend = core.table(
     utcDay: date("utc_day").notNull(),
     type: text("type").notNull(),
     count: integer("count").notNull().default(0),
+    // When the day's cap first refused a reservation, for the guard (plan 8.2).
+    cappedAt: timestamp("capped_at", { withTimezone: true }),
   },
   (t) => [
     primaryKey({ columns: [t.utcDay, t.type] }),

@@ -1,0 +1,174 @@
+{
+  "email": {
+    "sender": "Oral Care Group – Digital",
+    "footer": "Oral Care Group – Digital",
+    "logoAlt": "Oral Care",
+    "product": "Digital",
+    "open": "Open Oral Care Digital",
+    "whyAdmin": "You get this e-mail because you are an admin in Oral Care Digital.",
+    "signIn": {
+      "subject": "Your sign-in code for Oral Care Digital",
+      "preheader": "The code is valid for 10 minutes.",
+      "heading": "Your sign-in code",
+      "text": "Enter this code on the sign-in page. It is valid for 10 minutes.",
+      "why": "You get this e-mail because this address was entered on digital.oralcaregroup.com."
+    },
+    "invitation": {
+      "subject": "{admin} invited you to Oral Care Digital",
+      "preheader": "You have access to {markets} as a {role}.",
+      "heading": "Hi {firstName}, you have access to Oral Care Digital",
+      "markets": "Markets",
+      "role": "Role",
+      "signInWith": "Sign in with",
+      "button": "Sign in to Oral Care Digital",
+      "noPasswords": "For security reasons, we don't use passwords. When you sign in, we e-mail you a code.",
+      "why": "You get this e-mail because an admin invited you to Oral Care Digital.",
+      "roles": {
+        "viewer": "Viewer",
+        "admin": "Admin"
+      }
+    },
+    "alerts": {
+      "subjectMore": "{first}, and {count, plural, one {# more alert} other {# more alerts}}",
+      "preheader": "{count} new alerts from the {time} measurement.",
+      "measuredToday": "Measured today at {time}",
+      "measuredOn": "Measured on {date} at {time}",
+      "heading": "{count, plural, one {# new alert} other {# new alerts}}"
+    },
+    "summary": {
+      "subject": "Oral Care Digital, {date}: {headline}",
+      "preheader": "{measured} of {expected} measurements, {coverage}% coverage, {backup}.",
+      "preheaderBackupDone": "backup done",
+      "preheaderBackupMissing": "no backup",
+      "allRan": "All measurements ran",
+      "someMissing": "{count, plural, one {# measurement is missing} other {# measurements are missing}}",
+      "measurements": "Measurements",
+      "of": "of {count}",
+      "coverage": "Coverage",
+      "backup": "Backup",
+      "backupDone": "Done",
+      "backupMissing": "Missing",
+      "needsAttention": "Needs attention",
+      "availabilityIn": "Availability in {market}",
+      "waitingTimeIn": "Waiting time in {market}",
+      "good": "Good availability",
+      "mixedAvailability": "Mixed availability",
+      "low": "Low availability",
+      "short": "Short waiting time",
+      "mixedWaitingTime": "Mixed waiting time",
+      "long": "Long waiting time",
+      "notOnline": "Not online",
+      "clinics": "{count, plural, one {# clinic} other {# clinics}}",
+      "slotsNotOnline": "Slots not online",
+      "slotsNotOnlineRow": "Clinics with slots in Muntra that patients can't book",
+      "changes": "Changes in the offering",
+      "serverErrors": "Server errors in the app",
+      "serverErrorsRow": "{count, plural, one {# error} other {# errors}}",
+      "servicesAndUsage": "Services and usage",
+      "scheduledJobs": "Scheduled jobs",
+      "scheduledJobsValue": "{ran} of {expected} ran",
+      "neonDatabase": "Neon database",
+      "neonTraffic": "Neon traffic this month",
+      "resendEmails": "Resend e-mails",
+      "resendEmailsValue": "{sent} of {limit}",
+      "vercelCpu": "Vercel CPU this month",
+      "percentOf": "{percent}% of {limit}",
+      "moreChanges": "{count, plural, one {# more change} other {# more changes}}",
+      "changeKinds": {
+        "treatment_added": "{treatment} was added to the booking menu",
+        "treatment_removed": "{treatment} was removed from the booking menu",
+        "treatment_renamed": "{before} is now called {after}",
+        "clinic_added": "{clinic} was added to oralcare.se",
+        "clinic_removed": "{clinic} was removed from oralcare.se",
+        "clinic_region_changed": "{clinic} moved from {before} to {after}",
+        "selectable_on": "{clinic} can now be booked for {treatment}",
+        "selectable_off": "{clinic} can no longer be booked for {treatment}",
+        "epr_activation_on": "{treatment} was activated in Muntra at {clinic}",
+        "epr_activation_off": "{treatment} was deactivated in Muntra at {clinic}",
+        "max_lead_changed": "oralcare.se now takes bookings {after} days ahead, not {before}"
+      }
+    }
+  },
+  "alerts": {
+    "measurement_failed": {
+      "headline": "The {time} measurement failed",
+      "fact": "The retry at {retryTime} also failed. Error: {error}."
+    },
+    "schema_version": {
+      "headline": "The {time} measurement was skipped",
+      "fact": "The database version ({database}) doesn't match the code ({code})."
+    },
+    "incident": {
+      "headline": "oralcare.se showed no slots for {percent}% of clinics and treatments",
+      "fact": "Muntra had slots for them. The values are saved as \"Could not be measured\"."
+    },
+    "low_coverage": {
+      "headline": "Only {percent}% of clinics and treatments were measured",
+      "fact": "{measured} of {expected}. The rest are saved as \"Could not be measured\"."
+    },
+    "stopped_early": {
+      "headline": "The {time} measurement stopped early",
+      "factBudget": "The daily request budget was used up.",
+      "factFailures": "5 requests in a row failed."
+    },
+    "treatment_not_online": {
+      "headline": "{treatment} is not online at {clinic}",
+      "fact": "{slots, plural, one {# slot} other {# slots}} in Muntra that patients can't book on oralcare.se."
+    },
+    "treatment_withdrawn": {
+      "headline": "{treatment} was removed from oralcare.se",
+      "fact": "It is no longer in the booking menu."
+    },
+    "slots_not_online": {
+      "headline": "{slots, plural, one {# slot} other {# slots}} not online at {clinic}",
+      "fact": "{treatment}: slots in Muntra that patients can't book on oralcare.se, in two measurements in a row."
+    },
+    "max_lead_changed": {
+      "headline": "oralcare.se now takes bookings {after} days ahead",
+      "fact": "It was {before} days."
+    },
+    "window_anomaly": {
+      "headline": "Muntra shows early slots that oralcare.se doesn't",
+      "fact": "{clinics} clinics have slots in Muntra in the next 2 hours that oralcare.se doesn't show."
+    },
+    "format": {
+      "headline": "{source} changed its data format",
+      "fact": "Field {path}: expected {expected}, got {received}, in {count, plural, one {# response} other {# responses}}."
+    },
+    "collector_error": {
+      "headlineRejected": "oralcare.se rejected a request from the collector",
+      "headlineSlotBeforeWindow": "oralcare.se showed a slot before the window",
+      "fact": "{treatment} at {clinic}."
+    },
+    "missing_measurements": {
+      "headline": "{count, plural, one {# measurement is missing} other {# measurements are missing}}",
+      "fact": "{times}. The retries failed too."
+    },
+    "backup_old": {
+      "headline": "The backup is {hours} hours old",
+      "fact": "The last backup finished {time}.",
+      "headlineNone": "No backup has finished yet",
+      "factNone": "The backup runs every night at 02:30 UTC."
+    },
+    "limit": {
+      "headline": "{service} is at {percent}% of its limit",
+      "fact": "{used} of {limit}."
+    },
+    "vercel_token": {
+      "headline": "The Vercel token expires on {date}",
+      "fact": "Deploys stop when it expires."
+    },
+    "sign_in_limit": {
+      "headline": "The daily limit for sign-in codes was reached at {time}",
+      "fact": "Nobody could get a code until midnight UTC."
+    },
+    "admin_inactive": {
+      "headline": "{name} hasn't signed in for 12 months",
+      "fact": "Admins are never removed automatically."
+    },
+    "rights": {
+      "headline": "A database role has unexpected rights",
+      "fact": "{role}: {difference}."
+    }
+  }
+}
