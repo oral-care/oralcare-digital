@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 import { assertProductionEnvironment } from "./src/lib/env";
 import { securityHeaders } from "./src/lib/security/headers";
@@ -31,4 +32,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// The app's texts are in messages/en.json (plan 4), read through next-intl.
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+export default withNextIntl(nextConfig);

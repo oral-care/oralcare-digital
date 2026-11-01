@@ -18,7 +18,7 @@ jobs:
   checks:
     name: Checks
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -74,6 +74,23 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      - name: Browser for the end-to-end tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: End-to-end tests against the built app
+        run: pnpm run test:e2e
+
+      - name: Keep the end-to-end report and screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Secrets scan (gitleaks)
         env:
           GITLEAKS_VERSION: 8.30.1
@@ -82,4 +99,4 @@ jobs:
           curl -fsSL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
           echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check
           tar -xzf gitleaks.tar.gz gitleaks
-          ./gitleaks git --redact --no-banner .
+          ./gitleaks git --redact --verbose --no-banner .

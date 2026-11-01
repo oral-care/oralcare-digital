@@ -170,5 +170,139 @@
       "headline": "A database role has unexpected rights",
       "fact": "{role}: {difference}."
     }
+  },
+  "app": {
+    "name": "Oral Care Digital",
+    "logoAlt": "Oral Care",
+    "product": "Digital"
+  },
+  "signIn": {
+    "title": "Sign in",
+    "intro": "We'll e-mail you a sign-in code.",
+    "email": "Work e-mail",
+    "continue": "Continue",
+    "codeSent": "Code sent to {email}",
+    "digit": "Digit {number}",
+    "signIn": "Sign in",
+    "newCode": "Send a new code",
+    "otherEmail": "Use another e-mail",
+    "newCodeSent": "We've sent the code again.",
+    "chooseMarket": "Choose market",
+    "errors": {
+      "email": "Enter your work e-mail.",
+      "code": "Enter all 8 digits.",
+      "wrongCode": "That code didn't work. Check the e-mail and try again.",
+      "tooManyAttempts": "Too many tries with this code. Send a new code.",
+      "expired": "The code has expired. Send a new code.",
+      "locked": "Too many tries. Wait a few minutes and try again.",
+      "failed": "Something went wrong. Try again."
+    }
+  },
+  "frame": {
+    "market": "Market",
+    "noAccess": "No access",
+    "noAccessTo": "You don't have access to {market}",
+    "groups": {
+      "availability": "Availability",
+      "comingSoon": "Coming soon",
+      "admin": "Admin"
+    },
+    "dataUpdatedToday": "Data updated today at {time}",
+    "dataUpdatedOn": "Data updated {date} at {time}",
+    "noDataYet": "No data yet for {market}",
+    "signOut": "Sign out",
+    "menu": "Menu"
+  },
+  "banner": {
+    "stale": "Data is not up to date. Last updated {time}.",
+    "staleNever": "Data is not up to date.",
+    "today": "today at {time}",
+    "on": "{date} at {time}"
+  },
+  "pages": {
+    "whatPatientsSee": "What patients see",
+    "clinics": "Clinics",
+    "clinic": "Clinic",
+    "patientVsMuntra": "Patient vs Muntra",
+    "users": "Users"
+  },
+  "comingSoon": {
+    "title": "Coming soon",
+    "text": "{module} is being built."
+  },
+  "noData": {
+    "title": "No data for {market} yet",
+    "text": "{brand} is added when the clinics' booking system is connected."
+  },
+  "noAccess": {
+    "heading": "No access yet",
+    "title": "You don't have access to any views",
+    "text": "Ask an admin to give you access."
+  },
+  "notFound": {
+    "heading": "Page not found",
+    "goTo": "Go to {page}",
+    "signIn": "Go to sign-in"
+  },
+  "users": {
+    "heading": "Users",
+    "lead": "Who can sign in, which views they can open and which markets they see.",
+    "invite": "Invite user",
+    "inviteTitle": "Invite user",
+    "editTitle": "Edit {name}",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "E-mail",
+    "emailPlaceholder": "Work e-mail",
+    "access": "Access",
+    "markets": "Markets",
+    "role": "Role",
+    "allViews": "All views",
+    "allMarkets": "All markets",
+    "roles": {
+      "viewer": "Viewer",
+      "admin": "Admin"
+    },
+    "ownRole": "You can't change your own role.",
+    "cancel": "Cancel",
+    "send": "Send invitation",
+    "save": "Save changes",
+    "columns": {
+      "user": "User",
+      "access": "Access",
+      "markets": "Markets",
+      "role": "Role",
+      "lastSignIn": "Last sign-in"
+    },
+    "tips": {
+      "user": "Name and work e-mail.",
+      "access": "The views the user can open.",
+      "markets": "The markets the user can see.",
+      "role": "Viewer: sees the views and markets they have access to.\nAdmin: also invites, changes and removes users.",
+      "lastSignIn": "When the user last signed in."
+    },
+    "lastSignInToday": "Today {time}",
+    "invited": "Invited, not signed in yet",
+    "edit": "Edit {name}",
+    "remove": "Remove {name}",
+    "removeTitle": "Remove {name}?",
+    "removeText": "{name} is signed out right away and can no longer sign in. To give access again, invite {email} again.",
+    "removeConfirm": "Remove user",
+    "errors": {
+      "firstName": "Enter a first name.",
+      "lastName": "Enter a last name.",
+      "email": "Enter a valid work e-mail address.",
+      "taken": "This address already has an account or an invitation.",
+      "views": "Choose at least one view.",
+      "externalViews": "An address outside the group can only get Tracking Framework.",
+      "markets": "Choose at least one market.",
+      "role": "Choose a role.",
+      "ownRole": "You can't change your own role.",
+      "lastAdmin": "There must always be at least one admin.",
+      "removeSelf": "You can't remove yourself.",
+      "notAllowed": "Only admins can change users.",
+      "gone": "This user no longer exists. Reload the page.",
+      "notSent": "The invitation couldn't be sent. Try again later."
+    }
   }
 }
