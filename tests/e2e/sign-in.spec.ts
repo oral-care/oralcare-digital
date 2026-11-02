@@ -27,10 +27,17 @@ test("a wrong code is refused, and after 3 wrong codes the address has to wait",
   const page = await (await newContext(browser)).newPage();
   await requestCode(page, PEOPLE.wrongCode.email);
   await codeFor(page, PEOPLE.wrongCode.email);
-  await enterCode(page, "00000000");
+  // Each try waits for its answer, so the next code is never typed while the
+  // form is still busy and every wrong code is counted.
+  const tryCode = async (code: string) => {
+    const answered = page.waitForResponse((r) => r.url().endsWith("/api/auth/sign-in/email-otp"));
+    await enterCode(page, code);
+    await answered;
+  };
+  await tryCode("00000000");
   await expect(page.getByText("That code didn't work. Check the e-mail and try again.")).toBeVisible();
-  for (let i = 0; i < 2; i++) await enterCode(page, "11111111");
-  await enterCode(page, "22222222");
+  for (let i = 0; i < 2; i++) await tryCode("11111111");
+  await tryCode("22222222");
   await expect(page.getByText("Too many tries. Wait a few minutes and try again.")).toBeVisible();
 });
 
