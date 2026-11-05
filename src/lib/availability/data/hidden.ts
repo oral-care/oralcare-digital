@@ -25,7 +25,9 @@ export async function hiddenSlots(data: MarketData): Promise<HiddenRow[]> {
   const pairs = (await latestPairs(data)).filter((p) => (p.slotsNotOnline ?? 0) > 0);
   if (pairs.length === 0 || !data.latest) return [];
   // The runs since the last one without a difference. A run that couldn't
-  // compare the pair (null) doesn't break it.
+  // compare the pair (null) doesn't break it. The latest run's start is read
+  // in the database: it has microseconds, which a JavaScript Date drops, and
+  // the rounded time would leave the latest run out.
   const since = await appPool().query<{ clinic_id: number; treatment_id: number; since: Date }>(
     `WITH pair AS (
        SELECT * FROM unnest($1::int[], $2::int[]) AS p(clinic_id, treatment_id)
@@ -36,13 +38,13 @@ export async function hiddenSlots(data: MarketData): Promise<HiddenRow[]> {
        FROM pair p
        JOIN availability.comparison x ON x.clinic_id = p.clinic_id AND x.treatment_id = p.treatment_id
        JOIN core.job_run r ON r.id = x.job_run_id
-       WHERE r.status = 'succeeded' AND r.started_at <= $3
+       WHERE r.status = 'succeeded' AND r.started_at <= (SELECT started_at FROM core.job_run WHERE id = $3)
      )
      SELECT clinic_id, treatment_id, min(started_at) AS since
      FROM history
      WHERE slots_not_online > 0 AND (last_zero IS NULL OR started_at > last_zero)
      GROUP BY clinic_id, treatment_id`,
-    [pairs.map((p) => p.clinicId), pairs.map((p) => p.treatmentId), data.latest.startedAt],
+    [pairs.map((p) => p.clinicId), pairs.map((p) => p.treatmentId), data.latest.runId],
   );
   const sinceOf = new Map(
     since.rows.map((r) => [`${r.clinic_id}|${r.treatment_id}`, zonedDay(r.since, data.timeZone)]),

@@ -6,9 +6,10 @@ import { addDays, STOCKHOLM, zonedDay, zonedDayStart, zonedParts } from "../../s
 // regions and four treatments, a measurement at 08 on each of the last 99
 // days with daily values, and the two latest even hours today. Every status
 // on the pages appears: Good, Mixed and Low, Short, Mixed and Long, slots not
-// online on a treatment that is online and on one that isn't, a clinic with
-// nothing online that Muntra has activated, and one with nothing at all. Two
-// changes in the offering mark the charts. All names are made up.
+// online on a treatment that is online and on one that isn't (one of them new
+// in the latest run), a clinic with nothing online that Muntra has activated,
+// and one with nothing at all. Two changes in the offering mark the charts.
+// All names are made up.
 
 const HOUR = 3_600_000;
 export const HISTORY_DAYS = 99;
@@ -20,8 +21,8 @@ type Pair = {
   epr: number | null;
   /** Days to the first slot on the web today. */
   first: number;
-  /** Days back the slots not online started, with how many. */
-  hidden?: { since: number; slots: number };
+  /** Days back the slots not online started, with how many; "latest" is only the latest run. */
+  hidden?: { since: number | "latest"; slots: number };
 };
 
 export const SEED_REGIONS = [
@@ -66,7 +67,7 @@ export const SEED_CLINICS: {
     pairs: {
       "muntra-checkup-1": { web: 20, epr: 20, first: 1 },
       "muntra-treatment-23": { web: 5, epr: 5, first: 2 },
-      "muntra-treatment-11": { web: 12, epr: 12, first: 5 },
+      "muntra-treatment-11": { web: 12, epr: 12, first: 5, hidden: { since: "latest", slots: 2 } },
     },
   },
   {
@@ -208,9 +209,11 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
   const runByDay = new Map<number, number>();
   for (const { point, daysAgo, latest: isLatest } of points) {
     const startedAt = new Date(point.getTime() + 4 * 60_000);
+    // Microseconds, like now() in the real run log, which a JavaScript Date can't hold.
     const run = await one<{ id: number }>(
       `INSERT INTO core.job_run (job, country_id, schedule_point, status, started_at, finished_at, window_start, code_version)
-       VALUES ('availability', $1, $2, 'succeeded', $3, $4, $5, 'e2e') RETURNING id`,
+       VALUES ('availability', $1, $2, 'succeeded', $3::timestamptz + interval '123456 microseconds', $4, $5, 'e2e')
+       RETURNING id`,
       [
         countryId,
         point,
@@ -230,7 +233,10 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
         const clinicId = clinicIds.get(clinic.slug);
         const treatmentId = treatmentIds.get(webKey);
         const web = pair.web === null ? null : slotsOn(pair, pair.web, daysAgo);
-        const hidden = pair.hidden && daysAgo <= pair.hidden.since ? pair.hidden.slots : 0;
+        const hidden =
+          pair.hidden && (pair.hidden.since === "latest" ? point === latest : daysAgo <= pair.hidden.since)
+            ? pair.hidden.slots
+            : 0;
         // Not bookable on the web: Muntra's slots are the ones not online, when there are any.
         const epr =
           pair.epr === null

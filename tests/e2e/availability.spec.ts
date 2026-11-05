@@ -42,7 +42,7 @@ test("the cards count every clinic once per row, and Month ahead sums the next 3
     ["Good availability", "2 clinics"],
     ["Mixed availability", "1 clinic"],
     ["Low availability", "1 clinic"],
-    ["Slots not online", "2 clinics"],
+    ["Slots not online", "3 clinics"],
     ["Short waiting time", "2 clinics"],
     ["Mixed waiting time", "1 clinic"],
     ["Long waiting time", "1 clinic"],
@@ -195,6 +195,11 @@ test("Patient vs Muntra groups the clinics, with the day the difference started"
   await expect(epsilon).toContainText("12");
   await expect(epsilon).toContainText("19");
   await expect(epsilon).toContainText(dayLabel(addDays(today, -5)));
+  // A difference found first in the latest measurement started today.
+  const beta = page.getByRole("row", { name: /^Oral Care Beta/ });
+  await expect(beta).toContainText("Tandhygienist");
+  await expect(beta).toContainText("14");
+  await expect(beta).toContainText(dayLabel(today));
   await epsilon.getByRole("cell").nth(1).click();
   await expect(page.getByRole("heading", { name: "Oral Care Epsilon" })).toBeVisible();
 
