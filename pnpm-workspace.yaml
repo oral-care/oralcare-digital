@@ -20,6 +20,12 @@ minimumReleaseAgeExclude:
   - eslint-config-next
 overrides:
   adm-zip@<0.6.0: ">=0.6.0"
+  # drizzle-kit's loader pins esbuild 0.18, which has GHSA-67mh-4wv8-2f99 (its
+  # development server); the version drizzle-kit itself uses is patched.
+  esbuild@<0.25.0: "^0.25.12"
   decode-uri-component@<=0.4.2: ">=0.5.0"
   js-yaml@<3.15.2: "^3.15.2"
   uuid@<11.1.1: "^11.1.1"
+  # @vercel/functions > @vercel/oidc > @vercel/cli-config pins zod 4.1, which has
+  # GHSA-mrhx-c7xc-m3w5; the app itself uses 4.6.7.
+  "@vercel/cli-config>zod": "^4.6.7"
