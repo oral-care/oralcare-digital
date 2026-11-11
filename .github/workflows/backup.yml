@@ -72,7 +72,8 @@ jobs:
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y --no-install-recommends postgresql-client-18
           echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
-          curl -fsSL -o age.tar.gz "https://github.com/FiloSottile/age/releases/download/v${AGE_VERSION}/age-v${AGE_VERSION}-linux-amd64.tar.gz"
+          # GitHub's downloads sometimes answer 503 or 504 for a while (8 Nov), so try again.
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 10 -o age.tar.gz "https://github.com/FiloSottile/age/releases/download/v${AGE_VERSION}/age-v${AGE_VERSION}-linux-amd64.tar.gz"
           echo "${AGE_SHA256}  age.tar.gz" | sha256sum --check
           tar -xzf age.tar.gz age/age
           sudo install age/age /usr/local/bin/age
