@@ -133,7 +133,7 @@ describe("compareSlots", () => {
 
 describe("statuses", () => {
   const other = { goodMinSlots: 11, shortMaxDays: 3 };
-  const akut = { goodMinSlots: 11, shortMaxDays: 0 };
+  const akut = { goodMinSlots: 11, shortMaxDays: 1 };
 
   it("sets availability at the thresholds", () => {
     expect(availabilityStatus(0, other)).toBeNull();
@@ -142,12 +142,13 @@ describe("statuses", () => {
     expect(availabilityStatus(11, other)).toBe("good");
   });
 
-  it("sets waiting time, same day for Akut and 3 days for others", () => {
+  it("sets waiting time, today or tomorrow for Akut and 3 days for others", () => {
     expect(waitingTimeStatus(null, other)).toBeNull();
     expect(waitingTimeStatus(3, other)).toBe("short");
     expect(waitingTimeStatus(4, other)).toBe("long");
     expect(waitingTimeStatus(0, akut)).toBe("short");
-    expect(waitingTimeStatus(1, akut)).toBe("long");
+    expect(waitingTimeStatus(1, akut)).toBe("short");
+    expect(waitingTimeStatus(2, akut)).toBe("long");
   });
 });
 

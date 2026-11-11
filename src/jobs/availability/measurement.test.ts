@@ -42,7 +42,7 @@ function context(overrides: Partial<Context> = {}): Context {
     previousPairs: new Map(),
     thresholds: new Map([
       [null, { id: 1, goodMinSlots: 11, shortMaxDays: 3 }],
-      [AKUT, { id: 2, goodMinSlots: 11, shortMaxDays: 0 }],
+      [AKUT, { id: 2, goodMinSlots: 11, shortMaxDays: 1 }],
     ]),
     incidentThreshold: 0.3,
     requestsToday: { web: 0, epr: 0 },
@@ -222,10 +222,10 @@ describe("evaluate", () => {
       input(context(), [[pair("a", AKUT), { web: answer(tomorrow), epr: answer(tomorrow) }]]),
     );
     const [web] = dailyRows(context(), result.measurements);
-    // Akut is short only on the same day, so a first slot tomorrow is long.
+    // Akut is short today or tomorrow (plan 5.2), so a first slot tomorrow is short.
     expect(web).toMatchObject({
       availability: "good",
-      waitingTime: "long",
+      waitingTime: "short",
       firstFreeDays: 1,
       thresholdVersionId: 2,
     });

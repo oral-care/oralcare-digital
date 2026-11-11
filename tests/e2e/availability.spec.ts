@@ -47,8 +47,9 @@ test("the cards count every clinic once per row, and Month ahead sums the next 3
     ["Low availability", "1 clinic"],
     ["Slots not online", "3 clinics"],
     ["Short waiting time", "2 clinics"],
-    ["Mixed waiting time", "1 clinic"],
-    ["Long waiting time", "1 clinic"],
+    // Gamma: Undersökning's first slot in 8 days is long, Akut's tomorrow is short (plan 5.2).
+    ["Mixed waiting time", "2 clinics"],
+    ["Long waiting time", "0 clinics"],
     ["Not online", "2 clinics"],
   ];
   for (const [label, count] of expected) await expect(card(page, label), label).toContainText(count);
@@ -243,4 +244,13 @@ test("a clinic that couldn't be measured shows n/a, never 0 or Not online", asyn
   await expect(card(page, "Slots not online")).toContainText("n/a");
   await expect(page.getByRole("row", { name: /^Undersökning/ })).toContainText("n/a");
   await expect(page.locator("h1").locator("..")).not.toContainText("Not online");
+});
+
+test("Akut is short when the first slot is tomorrow", async ({ browser }) => {
+  const page = await signedInPage(browser, "viewer");
+  await page.goto("/se/availability/clinics/3");
+  await expect(page.getByRole("heading", { name: "Oral Care Gamma" })).toBeVisible();
+  const akut = page.getByRole("row", { name: /^Akut/ });
+  await expect(akut).toContainText("1 day");
+  await expect(akut).toContainText("Short");
 });

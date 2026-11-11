@@ -274,7 +274,7 @@
       },
       "short": {
         "label": "Short waiting time",
-        "note": "Akut: first slot today. Others: within 3 days. In every online treatment."
+        "note": "Akut: first slot today or tomorrow. Others: within 3 days. In every online treatment."
       },
       "mixedWait": {
         "label": "Mixed waiting time",
@@ -282,7 +282,7 @@
       },
       "long": {
         "label": "Long waiting time",
-        "note": "Akut: first slot after today. Others: after 3 days. In every online treatment."
+        "note": "Akut: first slot after tomorrow. Others: after 3 days. In every online treatment."
       },
       "notOnline": {
         "label": "Not online",
@@ -354,7 +354,7 @@
       "treatmentsWithSlots": "Treatments with slots on oralcare.se, out of the treatments in the filter.",
       "fewestSlots": "The online treatment with the fewest free slots, and how many.",
       "availabilityMixed": "Good: more than 10 slots in the next 14 days.\nLow: 1 to 10.\nMixed: the clinic's treatments differ.\nNot online: no slots on oralcare.se in the next 14 days, or the clinic can't be chosen.",
-      "waitingTimeMixed": "Short: first slot today for Akut, within 3 days for other treatments.\nLong: later than that.\nMixed: the clinic's treatments differ.",
+      "waitingTimeMixed": "Short: first slot today or tomorrow for Akut, within 3 days for other treatments.\nLong: later than that.\nMixed: the clinic's treatments differ.",
       "onlineTreatments": "Treatments with slots patients can book on oralcare.se, out of all treatments on oralcare.se.",
       "slotsNotOnline": "Free slots in Muntra that patients can't book on oralcare.se.",
       "clinicTreatment": "Every treatment patients can book online on oralcare.se.",
@@ -362,7 +362,7 @@
       "inMuntra": "Activated: at least one caregiver has it open for online booking in Muntra.\nNot activated: no caregiver has.",
       "slotsInMuntra": "Free slots in Muntra in the next 14 days.",
       "availability": "Good: more than 10 slots in the next 14 days.\nLow: 1 to 10.",
-      "waitingTime": "Short: first slot today for Akut, within 3 days for other treatments.\nLong: later than that.",
+      "waitingTime": "Short: first slot today or tomorrow for Akut, within 3 days for other treatments.\nLong: later than that.",
       "hiddenTreatment": "The treatment with free slots in Muntra that patients can't see.",
       "onSite": "Free slots patients can book on oralcare.se in the next 14 days.\nNot online: no slots there in the next 14 days, or the clinic can't be chosen for it.",
       "since": "The first day the difference was measured."

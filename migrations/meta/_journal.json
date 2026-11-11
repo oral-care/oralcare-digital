@@ -57,6 +57,13 @@
       "when": 1793572541364,
       "tag": "20261101223541_comparison-pair-index",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794437873999,
+      "tag": "20261111225753_akut-short-today-or-tomorrow",
+      "breakpoints": true
     }
   ]
 }

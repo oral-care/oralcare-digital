@@ -144,7 +144,9 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
         good_min_slots: number;
         short_max_days: number;
       }>(
-        "SELECT id, treatment_web_key, good_min_slots, short_max_days FROM availability.status_threshold_version WHERE country_id = $1",
+        `SELECT DISTINCT ON (coalesce(treatment_web_key, '')) id, treatment_web_key, good_min_slots, short_max_days
+         FROM availability.status_threshold_version WHERE country_id = $1
+         ORDER BY coalesce(treatment_web_key, ''), valid_from DESC, id DESC`,
         [countryId],
       )
     ).rows.map((r) => [r.treatment_web_key, r]),

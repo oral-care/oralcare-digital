@@ -82,7 +82,7 @@ export const latestPairs = cache(async (data: MarketData): Promise<PairValue[]> 
       `SELECT DISTINCT ON (coalesce(v.treatment_web_key, '')) v.treatment_web_key, v.good_min_slots, v.short_max_days
        FROM availability.status_threshold_version v
        WHERE v.country_id = $1 AND v.valid_from <= now()
-       ORDER BY coalesce(v.treatment_web_key, ''), v.valid_from DESC`,
+       ORDER BY coalesce(v.treatment_web_key, ''), v.valid_from DESC, v.id DESC`,
       [data.countryId],
     ),
   ]);
