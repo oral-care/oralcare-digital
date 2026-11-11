@@ -44,6 +44,16 @@ export async function summaryData(
   const measured = Number(runs.rows[0]?.measured ?? 0);
   const expected = Number(runs.rows[0]?.expected ?? 0);
 
+  // Late measurements (plan 5.5 and 8.2): schedule points measured by the retry
+  // at the odd hour, from the run log's is_retry. A point has at most one
+  // succeeded run, so each counts once.
+  const late = await client.query<{ late: number }>(
+    `SELECT count(*)::int AS late FROM core.job_run
+     WHERE job = 'availability' AND status = 'succeeded' AND is_retry
+       AND schedule_point >= $1 AND schedule_point < $2`,
+    [day.start, day.end],
+  );
+
   // Yesterday's scheduled jobs that ran: the measurements, the guard and the backups (plan 7).
   const jobs = await client.query<{ guard: number; backups: number }>(
     `SELECT count(*) FILTER (WHERE job = 'guard')::int AS guard, count(*) FILTER (WHERE job = 'backup')::int AS backups
@@ -74,7 +84,7 @@ export async function summaryData(
   const u = input.usage;
   return {
     day: day.points[3] ?? day.start,
-    measurements: { ran, expected: expectedPoints },
+    measurements: { ran, expected: expectedPoints, late: late.rows[0]?.late ?? 0 },
     coverage: expected > 0 ? (measured / expected) * 100 : null,
     backupDone:
       input.lastBackup !== null &&
@@ -96,8 +106,13 @@ export async function summaryData(
   };
 }
 
-/** Each clinic on the web counted once per group, from yesterday's daily values (plan 5.2). */
-async function marketSummary(
+/**
+ * Each clinic on oralcare.se counted once per group, from yesterday's daily
+ * values, the way the pages count (plan 5.2, 5.7 and 5.8): only treatments in
+ * the booking menu, only online treatments for the statuses, and a clinic with
+ * a value that could not be measured on its own row instead of Not online.
+ */
+export async function marketSummary(
   client: Client,
   countryId: number,
   name: string,
@@ -105,46 +120,59 @@ async function marketSummary(
 ): Promise<MarketSummary | null> {
   const rows = await client.query<{
     clinic_id: number;
+    status: string | null;
     availability: "good" | "low" | null;
     waiting_time: "short" | "long" | null;
     job_run_id: string | null;
+    slots_not_online: number | null;
   }>(
-    `SELECT c.id AS clinic_id, d.availability, d.waiting_time, d.job_run_id
+    `SELECT c.id AS clinic_id, d.status, d.availability, d.waiting_time, d.job_run_id, x.slots_not_online
      FROM core.clinic c
      JOIN core.clinic_external_id w ON w.clinic_id = c.id AND upper_inf(w.valid_during)
        AND w.source_system_id = (SELECT id FROM core.source_system WHERE role = 'web' LIMIT 1)
-     LEFT JOIN availability.daily_value d ON d.clinic_id = c.id AND d.day = $2::date AND d.status = 'measured'
-       AND d.source_system_id = w.source_system_id
+     LEFT JOIN (availability.daily_value d
+       JOIN core.treatment_name n ON n.treatment_id = d.treatment_id AND upper_inf(n.valid_during))
+       ON d.clinic_id = c.id AND d.day = $2::date AND d.source_system_id = w.source_system_id
+     LEFT JOIN availability.comparison x
+       ON x.job_run_id = d.job_run_id AND x.clinic_id = d.clinic_id AND x.treatment_id = d.treatment_id
      WHERE c.country_id = $1`,
     [countryId, day],
   );
-  const runIds = [...new Set(rows.rows.map((r) => r.job_run_id).filter((id): id is string => id !== null))];
-  if (runIds.length === 0) return null;
+  if (!rows.rows.some((r) => r.job_run_id !== null)) return null;
 
   const byClinic = new Map<
     number,
-    { availability: ("good" | "low" | null)[]; waiting: ("short" | "long" | null)[] }
+    { unknown: boolean; availability: ("good" | "low")[]; waiting: ("short" | "long")[]; hidden: boolean }
   >();
   for (const row of rows.rows) {
-    const clinic = byClinic.get(row.clinic_id) ?? { availability: [], waiting: [] };
-    clinic.availability.push(row.availability);
-    clinic.waiting.push(row.waiting_time);
+    const clinic = byClinic.get(row.clinic_id) ?? {
+      unknown: false,
+      availability: [],
+      waiting: [],
+      hidden: false,
+    };
+    if (row.status === "could_not_be_measured") clinic.unknown = true;
+    // A treatment is online when it has an availability; only those count (plan 5.2).
+    if (row.availability !== null) {
+      clinic.availability.push(row.availability);
+      if (row.waiting_time !== null) clinic.waiting.push(row.waiting_time);
+    }
+    if ((row.slots_not_online ?? 0) > 0) clinic.hidden = true;
     byClinic.set(row.clinic_id, clinic);
   }
   const availability = { good: 0, low: 0, mixed: 0, notOnline: 0 };
   const waitingTime = { short: 0, long: 0, mixed: 0, notOnline: 0 };
+  let couldNotBeMeasured = 0;
   for (const clinic of byClinic.values()) {
+    if (clinic.unknown) {
+      couldNotBeMeasured++;
+      continue;
+    }
     availability[clinicStatus(clinic.availability)]++;
     waitingTime[clinicStatus(clinic.waiting)]++;
   }
-
-  const notOnline = await client.query<{ clinics: number }>(
-    `SELECT count(DISTINCT x.clinic_id)::int AS clinics FROM availability.comparison x
-     JOIN core.clinic c ON c.id = x.clinic_id
-     WHERE x.job_run_id = ANY($1::bigint[]) AND c.country_id = $2 AND x.slots_not_online > 0`,
-    [runIds, countryId],
-  );
-  return { name, availability, waitingTime, slotsNotOnline: notOnline.rows[0]?.clinics ?? 0 };
+  const slotsNotOnline = [...byClinic.values()].filter((c) => c.hidden).length;
+  return { name, availability, waitingTime, couldNotBeMeasured, slotsNotOnline };
 }
 
 /** Yesterday's changes in the offering as lines, with the names they had last (plan 6.5). */

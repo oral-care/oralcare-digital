@@ -169,7 +169,7 @@ Rubrik "What patients see" och texten "Free slots patients can book online on or
 | Long waiting time                                | Akut: first slot after today. Others: after 3 days. In every online treatment.                |
 | Not online                                       | No slots patients can book on oralcare.se in the next 14 days, or the clinic can't be chosen. |
 
-Rad 1 är de fyra första korten och rad 2 de fyra sista. Varje kort visar antal kliniker ("1 clinic", "12 clinics") och texten. Varje rad räknar alla kliniker i filtret en gång. Kortet Slots not online får orange bakgrund när antalet är över 0.
+Rad 1 är de fyra första korten och rad 2 de fyra sista. Varje kort visar antal kliniker ("1 clinic", "12 clinics") och texten. Varje rad räknar alla kliniker i filtret en gång, utom kliniker som inte kunde mätas (avsnitt 5.7). Kortet Slots not online får orange bakgrund när antalet är över 0.
 
 - **Month ahead**, "Next 30 days, from today": en text i två stycken (avsnitt 5.6).
 - **Free slots over time**, för vald period: en linje per behandling i en fast färg (svart, OC Green 500, OC Orange 400, OC Green 400, OC Green 600, OC Orange 700 och grått), fyra jämna steg på y-axeln och omkring sju datum på x-axeln. Ändringar i utbudet visas som en streckad orange linje med en punkt. När man hovrar visas en lodrät linje och en ruta med datumet, varje linjes värde och dagens ändringar. Förklaringen under grafen slår av och på linjer.
@@ -204,7 +204,7 @@ Rad 1 är de fyra första korten och rad 2 de fyra sista. Varje kort visar antal
 
 Rader som inte är online är gråa. Har Muntra 0 tider är Slots not online och First free slot online tomma.
 
-- **Free slots over time** för klinikens behandlingar. En klinik utan något online får en linje på 0, "All treatments".
+- **Free slots over time** för klinikens behandlingar. En klinik utan något online får en linje på 0, "All treatments", de dagar den mättes. Dagar utan mätning är luckor.
 
 ### 4.7 Patient vs Muntra
 
@@ -349,7 +349,8 @@ Sätts per klinik och behandling som är online. Startvärden, som ligger i en t
 ### 5.3 Slots not online
 
 - Tider i Muntra som patienterna inte kan boka på oralcare.se, inom 14 dagar.
-- Räknas per tid: en tid i Muntra som saknas bland oralcare.se:s tider för samma klinik, behandling, behandlare och starttid.
+- Räknas per tid: en tid i Muntra som saknas bland oralcare.se:s tider för samma klinik, behandling, behandlare och starttid. Visar Muntra samma behandlare och starttid under flera av behandlingens Muntra-id räknas tiden en gång.
+- **Slots in Muntra** och **Available in Muntra** räknas över samma tidsfönster som jämförelsen (avsnitt 6.3), så att de går att jämföra med Slots not online.
 - För en behandling som är Not online räknas alla Muntras tider.
 
 ### 5.4 Tider och dagar
@@ -357,7 +358,7 @@ Sätts per klinik och behandling som är online. Startvärden, som ligger i en t
 - All tid är svensk tid (Europe/Stockholm). Dagar är kalenderdagar, och idag är dag 0.
 - "Inom 14 dagar" betyder från mättillfället till och med dag 13.
 - Första lediga tid i dagar är tidens datum minus mätningens datum. Mätning måndag kl 08 och första tid torsdag ger 3 dagar.
-- Visas som Today, 1 day, {N} days eller None in 30 days.
+- Visas som Today, 1 day, {N} days eller None in 30 days. En första tid räknas bara till och med dag 29; en senare tid är None in 30 days.
 
 ### 5.5 Today och perioder
 
@@ -368,7 +369,7 @@ Sätts per klinik och behandling som är online. Startvärden, som ligger i en t
 - **Vs previous period:** genomsnittet av dagsvärdena i perioden jämfört med lika många dagar närmast före. Visas som +N% eller -N%, eller n/a om det saknas data.
 - **Free slots** i tabellerna är tider inom 14 dagar på oralcare.se.
 - **Online at:** kliniker där behandlingen är online, av alla kliniker i filtret.
-- **Typical wait:** medianen av första lediga tid, bara över kliniker där behandlingen är online.
+- **Typical wait:** medianen av första lediga tid, avrundad till hela dagar (en halv dag uppåt), bara över kliniker där behandlingen är online.
 
 ### 5.6 Month ahead
 
@@ -377,6 +378,17 @@ Byggs av tiderna inom 30 dagar på oralcare.se i senaste mätningen, för filtre
 - Första stycket: totalt antal lediga onlinetider, antal kliniker och regioner, regionen med störst andel (med antal kliniker) och kliniken med flest tider (fetat).
 - Andra stycket: regionen med minst andel och kliniken med minst antal tider (fetat).
 - En enda klinik ger bara första meningen, med klinikens namn. Inga tider ger "There are no free online slots in the next 30 days for this selection."
+
+### 5.7 Det som inte kunde mätas
+
+- Ett värde som inte kunde mätas (avsnitt 6.4) visas som n/a. Det räknas aldrig som 0, Not online eller Activated.
+- **Klinikens läge:** Availability och Waiting time räknas bara när alla klinikens behandlingar i filtret kunde mätas på oralcare.se i mätningen. Annars visas n/a, och kliniken räknas inte i korten. Under korten står då "{N} clinics could not be measured."
+- **Summor över kliniker,** alltså Free slots, Online at och Typical wait i By treatment, Month ahead, grafen, minigrafen och Vs previous period, visas bara när alla kliniker i filtret kunde mätas för behandlingen. Annars visas n/a, och i graferna blir det en lucka den dagen. Month ahead visar då "Month ahead can't be shown: {N} clinics could not be measured in the latest measurement."
+- **Slots not online** för en klinik visas som n/a om någon av dess behandlingar inte kunde jämföras.
+
+### 5.8 Vad som räknas
+
+Sidorna och den dagliga sammanfattningen räknar bara kliniker som finns på oralcare.se och behandlingar som finns i bokningsmenyn, också för Slots not online. En tidigare dag visas med dagens kliniker och behandlingar.
 
 ---
 
@@ -391,7 +403,7 @@ Varje mätning gäller en marknad. Routen är `/api/cron/availability/{marknad}`
 3. **Patientvyn:** för varje klinik och behandling som går att välja, oralcare.se:s tidsfunktion på samma sätt som bokningsflödet, en klinik och en behandling per anrop.
 4. **Muntra-vyn:** direkt efter, Muntra för samma klinik, behandling och tidsfönster. Också för par som enligt den senast sparade listan är aktiverade i Muntra men inte går att boka på oralcare.se.
 5. **Omätning:** har Muntra tider som oralcare.se saknar mäts båda om direkt, eftersom oralcare.se ibland svarar med färre tider när dess eget anrop till Muntra misslyckas. Finns skillnaden kvar sparas den.
-6. **Muntras lista** över vilka behandlingar varje klinik har aktiverade, en gång per dygn vid schemapunkt 08, och bara om tiden räcker (avsnitt 7).
+6. **Muntras lista** över vilka behandlingar varje klinik har aktiverade, en gång per dygn vid schemapunkt 08, och bara om tiden räcker (avsnitt 7). Har en klinik ett par utan sparad lista, till exempel en ny klinik, läses klinikens lista direkt i samma mätning, så att Activated aldrig gissas.
 7. **Jämförelse** per par: tider på oralcare.se, tider i Muntra och slots not online.
 8. **Spara** i en transaktion: allt ovan, ändringar i utbudet jämfört med den senaste lyckade mätningen med en tidigare schemapunkt (avsnitt 6.5), dagsvärdet (avsnitt 5.5), larmen som ska skickas, och körningen som lyckad. Transaktionen börjar med att kontrollera att låset fortfarande är körningens eget. Är det inte det rullas allt tillbaka.
 9. **Larmen skickas** efter att transaktionen har gått igenom (avsnitt 8.1).
@@ -412,7 +424,7 @@ Varje mätning gäller en marknad. Routen är `/api/cron/availability/{marknad}`
 - **Tolkning:** zod-schemana kräver de fält som används och deras typer. Saknas ett fält eller har det bytt typ blir värdet "Could not be measured" och larmet Nytt format går. Nya fält ignoreras och noteras bara i körloggen, så att ett tillägg hos källan aldrig stoppar mätningen.
 - **Muntra:** når svaret ett sidtak räknas mätningen som misslyckad, aldrig som avkortad. Fönster längre än 30 dagar delas, eftersom Muntra avvisar 31 dagar eller mer.
 - **Behandling till Muntra:** en tabell per klinik och behandling med Muntras behandlings-id, ett eller flera. Startvärdet är nyckelns suffix, och tabellen kompletteras från `treatmentEprId` i oralcare.se:s tider. Muntra tillfrågas för vart och ett av id:na.
-- **Matchning av tider:** klinik, Muntra-behandling, Muntras behandlar-id och starttid. Behandlar-id används bara under mätningen och sparas aldrig.
+- **Matchning av tider:** klinik, behandling, Muntras behandlar-id och starttid. En tid som Muntra visar under flera av behandlingens Muntra-id räknas en gång. Behandlar-id används bara under mätningen och sparas aldrig.
 
 ### 6.3 Tidsfönster
 
@@ -546,9 +558,9 @@ Skickas av vakten till varje admin för sig, en gång per dygn, med innehållet 
   | Admin            | {namn} hasn't signed in for 12 months                    | Admins are never removed automatically. Larmet sparar bara användarens id; namnet läses in när sammanfattningen skrivs                    |
   | Rättigheter      | A database role has unexpected rights                    | {roll}: {skillnad}.                                                                                                                       |
 
-- Availability i varje marknad med data: Good, Mixed, Low och Not online;
-- Waiting time: Short, Mixed, Long och Not online;
-- Slots not online: antal kliniker;
+- Availability i varje marknad med data: Good, Mixed, Low och Not online, räknade som på sidorna (avsnitt 5.2, 5.7 och 5.8). Kliniker som inte kunde mätas står på en egen rad, "Could not be measured", när de finns;
+- Waiting time: Short, Mixed, Long och Not online, bara över behandlingar som är online, som på sidorna;
+- Slots not online: antal kliniker, som kortet på sidan;
 - gårdagens ändringar i utbudet;
 - antal serverfel i appen, bara om det fanns några (avsnitt 12);
 - **Services and usage:** hur många av gårdagens schemalagda jobb som körde (från körloggen: varje marknads 9 schemapunkter, vakten och backupen, två på söndagar; körloggen ser inte cron-anrop som inte hade något att göra), Neon-databasens storlek av 1 GB, Neons trafik denna månad av 5 GB (från backupens okomprimerade storlek), gårdagens mejl av Resends 100 (från `email_send`) och, på Hobby, insamlingens CPU-tid denna månad av 4 timmar. Om CPU-tiden visas styrs av inställningen `vercel_cpu_budget`, som är 4 timmar på Hobby och tom på Pro;

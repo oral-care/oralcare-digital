@@ -64,7 +64,11 @@ export default async function WhatPatientsSee({
       </div>
     </>
   );
-  if (filters.clinics.length > 0 && chosenClinics.length === 0) {
+  // Ids that don't exist (an old link) never fall back to all of them.
+  if (
+    (filters.clinics.length > 0 && chosenClinics.length === 0) ||
+    (filters.treatments.length > 0 && chosenTreatments.length === 0)
+  ) {
     return (
       <>
         {head}
@@ -102,7 +106,7 @@ export default async function WhatPatientsSee({
     changesByDay(data, range, { clinics: clinicIds, treatments: treatmentIds }),
     single !== null && filters.view === "clinic"
       ? dailySums(data, range, { by: "clinic", clinics: clinicIds, treatments: [single] })
-      : Promise.resolve(new Map<number, Map<string, number>>()),
+      : Promise.resolve(new Map<number, Map<string, number | null>>()),
     periodText(filters, range),
   ]);
   const empty = snapshot.pairs.length === 0;

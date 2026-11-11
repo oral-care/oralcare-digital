@@ -54,8 +54,16 @@ export function clinicsWithSlotsNotOnline(
   ).size;
 }
 
+/** A clinic's slots not online; null (n/a) when any of its pairs could not be compared (plan 5.7). */
+export function clinicSlotsNotOnline(pairs: PairValue[]): number | null {
+  if (pairs.some((p) => p.slotsNotOnline === null)) return null;
+  return pairs.reduce((sum, p) => sum + (p.slotsNotOnline ?? 0), 0);
+}
+
 export type TreatmentRow = {
   treatment: TreatmentRef;
+  /** Some clinic in the filter could not be measured: the totals are n/a (plan 5.7). */
+  unknown: boolean;
   freeSlots: number;
   onlineAt: number;
   clinics: number;
@@ -77,16 +85,19 @@ export function treatmentRows(input: {
   previous: (treatmentId: number) => (number | null)[];
 }): TreatmentRow[] {
   return input.treatments.flatMap((treatment) => {
-    const measured = input.pairs.filter(
-      (p) => p.treatmentId === treatment.id && input.clinics.has(p.clinicId) && p.web?.status === "measured",
+    const inFilter = input.pairs.filter(
+      (p) => p.treatmentId === treatment.id && input.clinics.has(p.clinicId),
     );
-    if (measured.length === 0) return [];
+    const measured = inFilter.filter((p) => p.web?.status === "measured");
+    const unknown = inFilter.some((p) => webState(p) === "unknown");
+    if (measured.length === 0 && !unknown) return [];
     const online = measured.filter((p) => webState(p) === "online");
     const waits = online.map((p) => p.web?.firstFreeDays).filter((d): d is number => d != null);
     const spark = input.spark(treatment.id);
     return [
       {
         treatment,
+        unknown,
         freeSlots: measured.reduce((sum, p) => sum + (p.web?.slots14 ?? 0), 0),
         onlineAt: online.length,
         clinics: input.clinics.size,
@@ -105,8 +116,13 @@ export type ClinicRow = {
   online: number;
   treatments: number;
   fewest: { treatment: string; slots: number } | null;
-  /** Only when one treatment is chosen. */
-  single: { slots: number | null; firstFree: FirstFree | null; spark: (number | null)[] } | null;
+  /** Only when one treatment is chosen. Unknown is n/a; null slots means it isn't offered. */
+  single: {
+    unknown: boolean;
+    slots: number | null;
+    firstFree: FirstFree | null;
+    spark: (number | null)[];
+  } | null;
 };
 
 /**
@@ -142,6 +158,7 @@ export function clinicRows(input: {
         input.single === null
           ? null
           : {
+              unknown: chosen !== undefined && chosen !== null && webState(chosen) === "unknown",
               slots: measured ? (chosen?.web?.slots14 ?? 0) : null,
               firstFree: measured ? firstFree(chosen?.web?.firstFreeDays ?? null) : null,
               spark: input.spark(clinic.id),
@@ -164,7 +181,8 @@ export type ClinicListRow = {
   statuses: ClinicStatuses;
   online: number;
   treatments: number;
-  slotsNotOnline: number;
+  /** Null is n/a: a pair could not be compared. */
+  slotsNotOnline: number | null;
 };
 
 /**
@@ -186,7 +204,7 @@ export function clinicListRows(input: {
       statuses: clinicStatuses(pairs, input.snapshotEmpty),
       online: pairs.filter((p) => webState(p) === "online").length,
       treatments: input.treatments.length,
-      slotsNotOnline: pairs.reduce((sum, p) => sum + (p.slotsNotOnline ?? 0), 0),
+      slotsNotOnline: clinicSlotsNotOnline(pairs),
     };
   });
   const byName = (a: ClinicListRow, b: ClinicListRow) => a.clinic.name.localeCompare(b.clinic.name, "sv");
@@ -195,11 +213,22 @@ export function clinicListRows(input: {
     availability: (a, b) =>
       AVAILABILITY_RANK[a.statuses.availability] - AVAILABILITY_RANK[b.statuses.availability],
     wait: (a, b) => WAITING_RANK[a.statuses.waitingTime] - WAITING_RANK[b.statuses.waitingTime],
-    notOnline: (a, b) => b.slotsNotOnline - a.slotsNotOnline,
+    notOnline: (a, b) => (b.slotsNotOnline ?? -1) - (a.slotsNotOnline ?? -1),
+  };
+  // A value that could not be measured (n/a) is last whichever way the column sorts.
+  const unknown: Record<Sort["key"], (row: ClinicListRow) => boolean> = {
+    online: (row) => row.statuses.availability === "unknown",
+    availability: (row) => row.statuses.availability === "unknown",
+    wait: (row) => row.statuses.waitingTime === "unknown",
+    notOnline: (row) => row.slotsNotOnline === null,
   };
   const sort = input.sort;
   if (!sort) return rows.sort(byName);
-  return rows.sort((a, b) => (sort.desc ? -1 : 1) * compare[sort.key](a, b) || byName(a, b));
+  const last = unknown[sort.key];
+  return rows.sort(
+    (a, b) =>
+      Number(last(a)) - Number(last(b)) || (sort.desc ? -1 : 1) * compare[sort.key](a, b) || byName(a, b),
+  );
 }
 
 /** The Availability column on a clinic's page (plan 4.6). */

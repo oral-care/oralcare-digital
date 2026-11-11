@@ -14,7 +14,14 @@ import {
 } from "./figures";
 import { filterSearch, parseFilters, periodRange, previousRange, DEFAULT_FILTERS } from "./filters";
 import { formatChange, formatCount, formatShare } from "./format";
-import { clinicListRows, clinicRows, clinicTreatmentRows, hiddenGroups, treatmentRows } from "./views";
+import {
+  clinicListRows,
+  clinicRows,
+  clinicSlotsNotOnline,
+  clinicTreatmentRows,
+  hiddenGroups,
+  treatmentRows,
+} from "./views";
 
 // The rules behind the Availability pages (plan 4.4-4.7 and 5).
 
@@ -130,11 +137,14 @@ describe("figures", () => {
       mixedWait: 0,
       long: 0,
       notOnline: 1,
+      unknown: 1,
     });
   });
 
-  it("takes the lower middle value and compares periods by their averages", () => {
-    expect(median([5, 0, 1, 8])).toBe(1);
+  it("takes the median in whole days and compares periods by their averages", () => {
+    expect(median([5, 0, 1, 8])).toBe(3);
+    expect(median([0, 3])).toBe(2);
+    expect(median([0, 1, 9])).toBe(1);
     expect(median([])).toBeNull();
     expect(changeFromPrevious([110, null, 110], [100, 100])).toBe(10);
     expect(changeFromPrevious([10], [null])).toBeNull();
@@ -208,7 +218,7 @@ describe("table rows", () => {
       previous: () => [1, 1],
     });
     expect(rows.map((r) => [r.treatment.name, r.freeSlots, r.onlineAt, r.clinics, r.typicalWait])).toEqual([
-      ["Undersökning", 24, 2, 3, { days: 0 }],
+      ["Undersökning", 24, 2, 3, { days: 3 }],
       ["Akut", 12, 1, 3, { days: 1 }],
     ]);
     expect(rows[0]?.change).toBe(50);
@@ -303,5 +313,83 @@ describe("table rows", () => {
       ["Beta", ["Undersökning"]],
       ["Gamma", ["Akut"]],
     ]);
+  });
+});
+
+describe("what could not be measured (plan 5.7)", () => {
+  const unknown: WebValue = {
+    status: "could_not_be_measured",
+    slots14: null,
+    slots30: null,
+    firstFreeDays: null,
+    availability: null,
+    waitingTime: null,
+  };
+  const clinics = [
+    { id: 1, name: "Alfa", region: "Norr" },
+    { id: 2, name: "Beta", region: "Syd" },
+  ];
+  const treatments = [{ id: 1, name: "Undersökning" }];
+
+  it("makes a clinic's status n/a when any of its treatments couldn't be measured", () => {
+    const statuses = clinicStatuses([pair(1, 1, { web: web(20) }), pair(1, 2, { web: unknown })]);
+    expect(statuses).toEqual({ availability: "unknown", waitingTime: "unknown" });
+    // Nothing online and nothing unknown is still Not online.
+    expect(clinicStatuses([pair(1, 1, { web: web(null) })]).availability).toBe("notOnline");
+  });
+
+  it("makes By treatment's totals n/a, and By clinic's value n/a, for one unknown clinic", () => {
+    const pairs = [pair(1, 1, { web: web(20, 0) }), pair(2, 1, { web: unknown })];
+    const [row] = treatmentRows({
+      treatments,
+      pairs,
+      clinics: new Set([1, 2]),
+      spark: () => [],
+      previous: () => [],
+    });
+    expect(row?.unknown).toBe(true);
+    const byClinic = clinicRows({
+      clinics,
+      treatments,
+      pairs,
+      snapshotEmpty: false,
+      single: 1,
+      spark: () => [],
+    });
+    expect(byClinic.find((r) => r.clinic.id === 2)?.single).toMatchObject({ unknown: true });
+    expect(byClinic.find((r) => r.clinic.id === 1)?.single).toMatchObject({ unknown: false, slots: 20 });
+  });
+
+  it("shows Month ahead as n/a instead of no slots", () => {
+    const names = new Map(clinics.map((c) => [c.id, c]));
+    expect(monthAhead([pair(1, 1, { web: web(10, 1, 30) }), pair(2, 1, { web: unknown })], names)).toEqual({
+      kind: "unknown",
+      clinics: 1,
+    });
+  });
+
+  it("makes a clinic's slots not online n/a when a pair couldn't be compared", () => {
+    expect(clinicSlotsNotOnline([pair(1, 1, { hidden: 3 }), pair(1, 2, { hidden: 0 })])).toBe(3);
+    expect(clinicSlotsNotOnline([pair(1, 1, { hidden: 3 }), pair(1, 2, { hidden: null })])).toBeNull();
+    const rows = clinicListRows({
+      clinics,
+      treatments,
+      pairs: [pair(1, 1, { web: web(20), hidden: 0 }), pair(2, 1, { web: web(20), hidden: null })],
+      snapshotEmpty: false,
+      sort: { key: "notOnline", desc: false },
+    });
+    expect(rows.map((r) => [r.clinic.name, r.slotsNotOnline])).toEqual([
+      ["Alfa", 0],
+      ["Beta", null],
+    ]);
+    // n/a stays last when the column is reversed.
+    const reversed = clinicListRows({
+      clinics,
+      treatments,
+      pairs: [pair(1, 1, { web: web(20), hidden: 0 }), pair(2, 1, { web: web(20), hidden: null })],
+      snapshotEmpty: false,
+      sort: { key: "notOnline", desc: true },
+    });
+    expect(reversed.map((r) => r.clinic.name)).toEqual(["Alfa", "Beta"]);
   });
 });

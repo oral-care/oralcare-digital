@@ -12,6 +12,13 @@ export async function MonthAheadText({ summary }: { summary: MonthAhead }) {
   const b = (chunks: React.ReactNode) => <strong className="font-semibold">{chunks}</strong>;
   const paragraph = "max-w-190 text-summary";
 
+  if (summary.kind === "unknown") {
+    return (
+      <Panel padded>
+        <p className={paragraph}>{t("unknown", { count: summary.clinics })}</p>
+      </Panel>
+    );
+  }
   if (summary.kind === "none") {
     return (
       <Panel padded>

@@ -97,6 +97,8 @@ export type MarketSummary = {
   name: string;
   availability: StatusCounts<"good" | "low">;
   waitingTime: StatusCounts<"short" | "long">;
+  /** Clinics with a value that could not be measured, counted in neither list (plan 5.7). */
+  couldNotBeMeasured: number;
   /** Clinics with slots in the booking system that patients can't book. */
   slotsNotOnline: number;
 };
@@ -104,7 +106,8 @@ export type MarketSummary = {
 export type SummaryData = {
   /** Any instant on the day the summary is about. */
   day: Date;
-  measurements: { ran: number; expected: number };
+  /** Late: schedule points measured by the retry at the odd hour. */
+  measurements: { ran: number; expected: number; late: number };
   /** Measured share of expected pairs and sources, 0-100, or null when nothing ran. */
   coverage: number | null;
   backupDone: boolean;
@@ -140,7 +143,10 @@ export function summaryEmail(data: SummaryData): Email {
       {
         label: t("email.summary.measurements"),
         value: String(data.measurements.ran),
-        suffix: t("email.summary.of", { count: data.measurements.expected }),
+        suffix:
+          data.measurements.late > 0
+            ? t("email.summary.ofLate", { count: data.measurements.expected, late: data.measurements.late })
+            : t("email.summary.of", { count: data.measurements.expected }),
       },
       { label: t("email.summary.coverage"), value: coverage },
       {
@@ -157,6 +163,17 @@ export function summaryEmail(data: SummaryData): Email {
   data.markets.forEach((market, index) => {
     const a = market.availability;
     const w = market.waitingTime;
+    // Clinics that could not be measured are in neither list's counts (plan 5.7).
+    const unknown =
+      market.couldNotBeMeasured > 0
+        ? [
+            {
+              label: t("email.summary.couldNotBeMeasured"),
+              value: clinics(market.couldNotBeMeasured),
+              muted: true,
+            },
+          ]
+        : [];
     blocks.push(
       label(t("email.summary.availabilityIn", { market: market.name }), index === 0 ? 32 : 24),
       list([
@@ -164,6 +181,7 @@ export function summaryEmail(data: SummaryData): Email {
         { label: t("email.summary.mixedAvailability"), value: clinics(a.mixed) },
         { label: t("email.summary.low"), value: clinics(a.low) },
         { label: t("email.summary.notOnline"), value: clinics(a.notOnline), muted: true },
+        ...unknown,
       ]),
       label(t("email.summary.waitingTimeIn", { market: market.name }), 24),
       list([
@@ -171,6 +189,7 @@ export function summaryEmail(data: SummaryData): Email {
         { label: t("email.summary.mixedWaitingTime"), value: clinics(w.mixed) },
         { label: t("email.summary.long"), value: clinics(w.long) },
         { label: t("email.summary.notOnline"), value: clinics(w.notOnline), muted: true },
+        ...unknown,
       ]),
       label(t("email.summary.slotsNotOnline"), 24),
       list([

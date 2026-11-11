@@ -17,7 +17,9 @@ import type { MarketData } from "./market";
 // The values per clinic and treatment that the cards and tables show (plan
 // 5.5): the latest successful measurement for today, with today's thresholds,
 // or a day's daily values for a period that ends earlier, with the statuses
-// they were saved with. Slots not online come from the same run's comparison.
+// they were saved with. Slots not online and Muntra's slots come from the
+// same run's comparison, over the same window (plan 5.3). Only clinics on
+// oralcare.se and treatments in the booking menu count (plan 5.8).
 
 type Row = {
   clinic_id: number;
@@ -31,11 +33,18 @@ type Row = {
   availability: Availability | null;
   waiting_time: WaitingTime | null;
   slots_not_online: number | null;
+  epr_slots: number | null;
 };
 
+/** Days to the first slot, only up to day 29; later is "None in 30 days" (plan 5.4). */
+const within30 = (days: number | null) => (days !== null && days <= 29 ? days : null);
+
 function pairs(data: MarketData, rows: Row[], web: (row: Row) => WebValue): PairValue[] {
+  const clinics = new Set(data.clinics.map((c) => c.id));
+  const treatments = new Set(data.treatments.map((t) => t.id));
   const byPair = new Map<string, PairValue>();
   for (const row of rows) {
+    if (!clinics.has(row.clinic_id) || !treatments.has(row.treatment_id)) continue;
     const key = `${row.clinic_id}|${row.treatment_id}`;
     const pair = byPair.get(key) ?? {
       clinicId: row.clinic_id,
@@ -45,7 +54,9 @@ function pairs(data: MarketData, rows: Row[], web: (row: Row) => WebValue): Pair
       slotsNotOnline: row.slots_not_online,
     };
     if (row.source_system_id === data.webSourceId) pair.web = web(row);
-    if (row.source_system_id === data.eprSourceId) pair.epr = { status: row.status, slots14: row.slots_14 };
+    if (row.source_system_id === data.eprSourceId) {
+      pair.epr = { status: row.status, slots14: row.epr_slots ?? row.slots_14 };
+    }
     byPair.set(key, pair);
   }
   return [...byPair.values()];
@@ -60,7 +71,7 @@ export const latestPairs = cache(async (data: MarketData): Promise<PairValue[]> 
     pool.query<Row>(
       `SELECT m.clinic_id, m.treatment_id, m.source_system_id, m.status, m.slots_14, m.slots_30,
               m.first_free_at, NULL::int AS first_free_days, NULL AS availability, NULL AS waiting_time,
-              x.slots_not_online
+              x.slots_not_online, x.epr_slots
        FROM availability.measurement m
        LEFT JOIN availability.comparison x
          ON x.job_run_id = m.job_run_id AND x.clinic_id = m.clinic_id AND x.treatment_id = m.treatment_id
@@ -87,7 +98,9 @@ export const latestPairs = cache(async (data: MarketData): Promise<PairValue[]> 
       status: row.status,
       slots14: row.slots_14,
       slots30: row.slots_30,
-      firstFreeDays: row.first_free_at ? dayIndex(latest.startedAt, row.first_free_at, data.timeZone) : null,
+      firstFreeDays: within30(
+        row.first_free_at ? dayIndex(latest.startedAt, row.first_free_at, data.timeZone) : null,
+      ),
     };
     // New treatments get the default thresholds until someone sets their own (plan 5.2).
     const thresholds = byKey.get(webKeys.get(row.treatment_id) ?? null) ?? byKey.get(null);
@@ -100,7 +113,7 @@ export const dayPairs = cache(async (data: MarketData, day: string): Promise<Pai
   const rows = await appPool().query<Row>(
     `SELECT d.clinic_id, d.treatment_id, d.source_system_id, d.status, d.slots_14, NULL::int AS slots_30,
             NULL::timestamptz AS first_free_at, d.first_free_days, d.availability, d.waiting_time,
-            x.slots_not_online
+            x.slots_not_online, x.epr_slots
      FROM availability.daily_value d
      JOIN core.clinic c ON c.id = d.clinic_id
      LEFT JOIN availability.comparison x
@@ -112,7 +125,7 @@ export const dayPairs = cache(async (data: MarketData, day: string): Promise<Pai
     status: row.status,
     slots14: row.slots_14,
     slots30: null,
-    firstFreeDays: row.first_free_days,
+    firstFreeDays: within30(row.first_free_days),
     availability: row.availability,
     waitingTime: row.waiting_time,
   }));
