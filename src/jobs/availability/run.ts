@@ -13,7 +13,7 @@ import { availabilityDecision } from "../runtime/schedule";
 import { collect, failure, type Sources } from "./collect";
 import { loadContext, type Context } from "./context";
 import { dailyRows, evaluate, type FormatProblem } from "./evaluate";
-import { planPairs, removedTreatments, webClinics } from "./pairs";
+import { planPairs, removedTreatments, webClinics, type Pair } from "./pairs";
 import { persist } from "./persist";
 import { diffRegistry } from "./registry";
 import { Muntra } from "./sources/epr/muntra";
@@ -214,6 +214,9 @@ async function measure(run: {
   const pairs = planPairs(ctx, registry);
   if (pairs.length === 0) throw new Error(`No clinics to measure (registry: ${registryError ?? "empty"})`);
 
+  // The whole list at 08 (or when it is old); otherwise only clinics with a
+  // pair the stored list doesn't cover, so Activated is never guessed (plan 6.1).
+  const fullActivation = activationDue(ctx, point, measuredAt, timeZone);
   const collected = await collect({
     pairs,
     sources,
@@ -221,9 +224,7 @@ async function measure(run: {
     measuredAt,
     timeZone,
     clock,
-    activationClinics: activationDue(ctx, point, measuredAt, timeZone)
-      ? activationClinics(ctx, registry)
-      : [],
+    activationClinics: fullActivation ? activationClinics(ctx, registry) : newPairClinics(ctx, pairs),
     activationUntil: startedAt + ACTIVATION_UNTIL_MS,
     removed: removedTreatments(ctx, registry),
   });
@@ -292,7 +293,7 @@ async function measure(run: {
           leadMinutes,
           windowEnd: window.to,
           registry: registry ? "read" : registryError,
-          activationFetched: collected.activationComplete,
+          activationFetched: fullActivation && collected.activationComplete,
           pairs: collected.pairs.length,
           remeasured: collected.remeasured,
           coverage: evaluation.coverage,
@@ -311,6 +312,11 @@ function activationDue(ctx: Context, point: Date, measuredAt: Date, timeZone: st
   if (zonedParts(point, timeZone).hour === ACTIVATION_POINT_HOUR) return true;
   const last = ctx.activationFetchedAt;
   return last === null || measuredAt.getTime() - last.getTime() > ACTIVATION_MAX_AGE_MS;
+}
+
+/** Clinics with a pair that has no stored offering yet, such as a new clinic or a newly bookable treatment. */
+function newPairClinics(ctx: Context, pairs: Pair[]): string[] {
+  return [...new Set(pairs.filter((p) => !ctx.offerings.has(p.key)).map((p) => p.eprId))].sort();
 }
 
 /** Every clinic, also those no longer on the web, which are still measured in the booking system (plan 6.5). */

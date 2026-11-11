@@ -26,6 +26,9 @@ function calendarDay(page: Page, day: string) {
   return page.getByRole("button", { name: new RegExp(`${month} ${n}${suffix}, ${date.getUTCFullYear()}`) });
 }
 
+/** Every made-up clinic except Oral Care Eta, which couldn't be measured today. */
+const MEASURED = "1,2,3,4,5,6";
+
 /** The card with this label, as the text of the whole card. */
 const card = (page: Page, label: string) =>
   page.locator("span", { hasText: new RegExp(`^${label}$`) }).locator("..");
@@ -37,7 +40,7 @@ test("the cards count every clinic once per row, and Month ahead sums the next 3
   await page.goto("/se/availability");
   await expect(page).toHaveTitle("What patients see · Oral Care Digital");
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
-  await expect(page.getByText("6 clinics, next 14 days")).toBeVisible();
+  await expect(page.getByText("7 clinics, next 14 days")).toBeVisible();
   const expected: [string, string][] = [
     ["Good availability", "2 clinics"],
     ["Mixed availability", "1 clinic"],
@@ -49,6 +52,12 @@ test("the cards count every clinic once per row, and Month ahead sums the next 3
     ["Not online", "2 clinics"],
   ];
   for (const [label, count] of expected) await expect(card(page, label), label).toContainText(count);
+  // Oral Care Eta couldn't be measured today: in no card, and Month ahead isn't shown (plan 5.7).
+  await expect(page.getByText("1 clinic could not be measured.")).toBeVisible();
+  await expect(
+    page.getByText("Month ahead can't be shown: 1 clinic could not be measured in the latest measurement."),
+  ).toBeVisible();
+  await page.goto(`/se/availability?c=${MEASURED}`);
   await expect(
     page.getByText("In the next 30 days there are 336 free online slots at 4 clinics in 3 regions."),
   ).toBeVisible();
@@ -58,7 +67,8 @@ test("the cards count every clinic once per row, and Month ahead sums the next 3
     .getByRole("link", { name: /Patient vs Muntra/ })
     .filter({ hasText: "Slots not online" })
     .click();
-  await expect(page).toHaveURL(/\/se\/availability\/patient-vs-muntra$/);
+  // The link keeps the clinic filter (plan 4.1).
+  await expect(page).toHaveURL(new RegExp(`/se/availability/patient-vs-muntra\\?c=${MEASURED}$`));
 });
 
 test("the chart's legend hides a line, and the address keeps it", async ({ browser }) => {
@@ -73,11 +83,12 @@ test("the chart's legend hides a line, and the address keeps it", async ({ brows
 
 test("By treatment sums the clinics, and a row shows the treatment per clinic", async ({ browser }) => {
   const page = await signedInPage(browser, "viewer");
-  await page.goto("/se/availability");
+  await page.goto(`/se/availability?c=${MEASURED}`);
   const row = page.getByRole("row", { name: /^Undersökning/ });
   await expect(row).toContainText("78");
   await expect(row).toContainText("4 of 6 clinics");
-  await expect(row).toContainText("Today");
+  // The median of 0, 0, 1 and 8 days is half a day, rounded up (plan 5.5).
+  await expect(row).toContainText("1 day");
   await row.getByRole("link", { name: "Undersökning" }).click();
   await expect(page).toHaveURL(/t=\d+&v=clinic/);
   await expect(page.getByRole("columnheader", { name: /First free slot/ })).toBeVisible();
@@ -108,6 +119,8 @@ test("a region chooses its clinics, and a filter without clinics says so", async
   await expect(page.getByText("2 clinics, next 14 days")).toBeVisible();
   await expect(page.getByRole("button", { name: /Clinics/ })).toContainText("2 clinics");
 
+  await page.goto("/se/availability?t=999999");
+  await expect(page.getByText("Nothing matches these filters")).toBeVisible();
   await page.goto("/se/availability?c=999999");
   await expect(page.getByText("Nothing matches these filters")).toBeVisible();
   await page.getByRole("link", { name: "Clear filters" }).click();
@@ -212,4 +225,22 @@ test("the menu keeps the period but not the clinics", async ({ browser }) => {
   await page.goto("/se/availability?c=1&p=7");
   await page.getByRole("link", { name: "Clinics", exact: true }).click();
   await expect(page).toHaveURL(/\/se\/availability\/clinics\?p=7$/);
+});
+
+test("a clinic that couldn't be measured shows n/a, never 0 or Not online", async ({ browser }) => {
+  const page = await signedInPage(browser, "viewer");
+  await page.goto("/se/availability");
+  await expect(page.getByRole("row", { name: /^Undersökning/ })).toContainText("n/a");
+
+  await page.goto("/se/availability/clinics");
+  const eta = page.getByRole("row", { name: /^Oral Care Eta/ });
+  await expect(eta).toContainText("n/a");
+  await expect(eta).not.toContainText("Not online");
+
+  await eta.getByRole("link", { name: "Oral Care Eta" }).click();
+  await expect(page.getByRole("heading", { name: "Oral Care Eta" })).toBeVisible();
+  await expect(card(page, "On oralcare.se")).toContainText("n/a");
+  await expect(card(page, "Slots not online")).toContainText("n/a");
+  await expect(page.getByRole("row", { name: /^Undersökning/ })).toContainText("n/a");
+  await expect(page.locator("h1").locator("..")).not.toContainText("Not online");
 });

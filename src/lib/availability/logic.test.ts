@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { compareSlots, dayIndex, summarize, type Slot } from "./compare";
+import { compareSlots, dayIndex, summarize, uniqueSlots, type Slot } from "./compare";
 import { isStale, lastTwoPoints } from "./freshness";
 import { availabilityStatus, clinicStatus, waitingTimeStatus } from "./statuses";
 import { estimateLeadMinutes, measurementWindow, roundUpToFiveMinutes, splitForMuntra } from "./window";
@@ -68,6 +68,17 @@ describe("days and counts", () => {
     expect(summary).toMatchObject({ slots7: 1, slots14: 2, slots30: 3, firstFreeDays: 0 });
     expect(summary.firstFreeAt).toEqual(at("2026-11-02T13:00:00Z"));
   });
+
+  it("finds the first slot only up to day 29 (plan 5.4)", () => {
+    // Monday 2 Nov at 23:00 Swedish time; 2 Dec is day 30.
+    const measured = at("2026-11-02T22:00:00Z");
+    expect(summarize([slot("2026-12-02T08:00:00Z")], measured)).toMatchObject({
+      slots30: 0,
+      firstFreeAt: null,
+      firstFreeDays: null,
+    });
+    expect(summarize([slot("2026-12-01T08:00:00Z")], measured).firstFreeDays).toBe(29);
+  });
 });
 
 describe("compareSlots", () => {
@@ -93,6 +104,25 @@ describe("compareSlots", () => {
     const web = [slot("2026-11-03T08:00:00Z")];
     const epr = [slot("2026-11-02T08:00:00Z", "c9"), slot("2026-11-03T08:00:00Z")];
     expect(compareSlots(web, epr, window, measured)).toEqual({ slotsNotOnline: 0, earlyOnly: 1 });
+  });
+
+  it("counts a slot once when the booking system names it under several procedure ids (plan 6.2)", () => {
+    const web = [slot("2026-11-03T08:00:00Z", "c1", "123")];
+    const epr = [
+      slot("2026-11-03T08:00:00Z", "c1", "23"),
+      slot("2026-11-03T08:00:00Z", "c1", "123"),
+      slot("2026-11-04T08:00:00Z", "c1", "23"),
+      slot("2026-11-04T08:00:00Z", "c1", "123"),
+    ];
+    expect(uniqueSlots(epr)).toHaveLength(2);
+    expect(compareSlots(web, epr, window, measured)).toEqual({ slotsNotOnline: 1, earlyOnly: 0 });
+  });
+
+  it("counts early slots as not online when the treatment isn't online (plan 5.3)", () => {
+    // The web's only slot is on day 20: not online, so every booking-system slot counts.
+    const web = [slot("2026-11-22T08:00:00Z")];
+    const epr = [slot("2026-11-02T08:00:00Z", "c9")];
+    expect(compareSlots(web, epr, window, measured)).toEqual({ slotsNotOnline: 1, earlyOnly: 0 });
   });
 
   it("ignores slots beyond 14 days and outside the window", () => {

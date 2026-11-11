@@ -1,11 +1,15 @@
 import { Client } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, inject, it } from "vitest";
 
+import { yesterday } from "@/jobs/guard/day";
 import { runGuard } from "@/jobs/guard/run";
 import { rightsDifferences } from "@/jobs/guard/rights";
+import { summaryData } from "@/jobs/guard/summary";
 import { ALERT_EMAILS_PER_DAY, sendPendingAlerts } from "@/jobs/runtime/alert-mail";
 import type { JobEnv } from "@/jobs/runtime/env";
 import type { Fetcher } from "@/jobs/runtime/http";
+import { summaryEmail } from "@/lib/email/emails";
+import { marketByCode } from "@/lib/markets";
 
 // The alert outbox and the guard against Postgres with their own roles, and
 // a fake Resend that records what would have been sent (plan 8 and 9).
@@ -328,5 +332,139 @@ describe("pruning auth", () => {
         before: { role: "viewer", reason: "inactive_12_months" },
       },
     ]);
+  });
+});
+
+describe("the daily summary's figures", () => {
+  // Counted like the pages (plan 5.2, 5.7, 5.8 and 8.2). Made-up clinics in a
+  // market of their own, in a transaction that is rolled back.
+  it("counts only online treatments, sets apart what couldn't be measured, and only what is on oralcare.se", async () => {
+    await owner.query("BEGIN");
+    try {
+      const one = async <T>(sql: string, params: unknown[] = []) =>
+        (await owner.query(sql, params)).rows[0] as T;
+      const { id: country } = await one<{ id: number }>("SELECT id FROM core.country WHERE code = 'nl'");
+      const { id: web } = await one<{ id: number }>("SELECT id FROM core.source_system WHERE role = 'web'");
+      const run = async (point: string, isRetry: boolean) =>
+        (
+          await one<{ id: number }>(
+            `INSERT INTO core.job_run (job, country_id, schedule_point, is_retry, status, code_version)
+             VALUES ('availability', $1, $2, $3, 'succeeded', 'test') RETURNING id`,
+            [country, point, isRetry],
+          )
+        ).id;
+      const daily = await run("2026-11-04T07:00:00Z", false);
+      await run("2026-11-04T05:00:00Z", true);
+
+      const clinic = async (slug: string, onWeb: boolean) => {
+        const { id } = await one<{ id: number }>(
+          "INSERT INTO core.clinic (country_id) VALUES ($1) RETURNING id",
+          [country],
+        );
+        await owner.query(
+          `INSERT INTO core.clinic_external_id (clinic_id, source_system_id, external_id, valid_during)
+           VALUES ($1, $2, $3, $4::tstzrange)`,
+          [id, web, slug, onWeb ? "[2026-10-01,)" : "[2026-10-01,2026-10-20)"],
+        );
+        return id;
+      };
+      const treatment = async (key: string, inMenu: boolean) => {
+        const { id } = await one<{ id: number }>(
+          "INSERT INTO core.treatment (country_id, web_key) VALUES ($1, $2) RETURNING id",
+          [country, key],
+        );
+        await owner.query(
+          `INSERT INTO core.treatment_name (treatment_id, name, slug, valid_during) VALUES ($1, $2, $2, $3::tstzrange)`,
+          [id, key, inMenu ? "[2026-10-01,)" : "[2026-10-01,2026-10-20)"],
+        );
+        return id;
+      };
+      const value = async (
+        clinicId: number,
+        treatmentId: number,
+        v: {
+          status: string;
+          slots?: number;
+          first?: number;
+          availability?: string;
+          waiting?: string;
+          hidden?: number;
+        },
+      ) => {
+        await owner.query(
+          `INSERT INTO availability.daily_value
+             (day, clinic_id, treatment_id, source_system_id, job_run_id, status, slots_14, first_free_days,
+              availability, waiting_time, code_version)
+           VALUES ('2026-11-04', $1, $2, $3, $4, $5, $6, $7, $8, $9, 'test')`,
+          [
+            clinicId,
+            treatmentId,
+            web,
+            daily,
+            v.status,
+            v.slots ?? null,
+            v.first ?? null,
+            v.availability ?? null,
+            v.waiting ?? null,
+          ],
+        );
+        await owner.query(
+          `INSERT INTO availability.comparison (job_run_id, clinic_id, treatment_id, slots_not_online)
+           VALUES ($1, $2, $3, $4)`,
+          [daily, clinicId, treatmentId, v.status === "could_not_be_measured" ? null : (v.hidden ?? 0)],
+        );
+      };
+
+      const [akut, checkup, removed] = [
+        await treatment("summary-akut", true),
+        await treatment("summary-checkup", true),
+        await treatment("summary-removed", false),
+      ];
+      // Online and Short; a treatment with no slot within 14 days (first on day 16) and a
+      // treatment that left the menu, with slots not online, change nothing.
+      const a = await clinic("summary-a", true);
+      await value(a, akut, {
+        status: "measured",
+        slots: 20,
+        first: 0,
+        availability: "good",
+        waiting: "short",
+      });
+      await value(a, checkup, { status: "measured", slots: 0, first: 16, waiting: "long" });
+      await value(a, removed, { status: "not_offered", hidden: 5 });
+      // Couldn't be measured: on its own row, never Not online.
+      const b = await clinic("summary-b", true);
+      await value(b, akut, { status: "could_not_be_measured" });
+      // Nothing online, with slots in Muntra: Not online, and one clinic with slots not online.
+      const d = await clinic("summary-d", true);
+      await value(d, akut, { status: "not_offered", hidden: 2 });
+      // No longer on oralcare.se: not counted at all.
+      const gone = await clinic("summary-gone", false);
+      await value(gone, akut, { status: "not_offered", hidden: 3 });
+
+      const now = new Date("2026-11-05T09:15:00Z");
+      const data = await summaryData(owner, {
+        now,
+        day: yesterday(now),
+        markets: [{ code: "nl", countryId: country, market: marketByCode("nl"), succeeded: [] }],
+        usage: { databaseBytes: 0, trafficBytesThisMonth: 0, cpuMsThisMonth: 0, cpuBudgetHours: null },
+        lastBackup: null,
+      });
+      expect(data.measurements.late).toBe(1);
+      expect(data.markets).toEqual([
+        {
+          name: "Netherlands",
+          availability: { good: 1, low: 0, mixed: 0, notOnline: 1 },
+          waitingTime: { short: 1, long: 0, mixed: 0, notOnline: 1 },
+          couldNotBeMeasured: 1,
+          slotsNotOnline: 1,
+        },
+      ]);
+      const email = summaryEmail({ ...data, attention: [] });
+      expect(email.text).toContain("Could not be measured: 1 clinic");
+      expect(email.text).toContain("of 9, 1 late");
+    } finally {
+      await owner.query("ROLLBACK");
+    }
   });
 });

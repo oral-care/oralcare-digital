@@ -3,8 +3,9 @@ import { STOCKHOLM, zonedParts } from "@/lib/time";
 import type { MeasurementWindow } from "./window";
 
 // Counting and matching slots (plan 5.3, 5.4 and 6.3). A slot is the same in
-// both sources when clinic, booking-system procedure, caregiver and start time
-// match. Caregiver ids are used here only and never stored.
+// both sources when the clinic, treatment, caregiver and start time match; a
+// slot the booking system shows under several of the treatment's procedure ids
+// is one slot. Caregiver ids are used here only and never stored.
 
 export type Slot = { start: Date; caregiverId: string; procedureId: string };
 
@@ -23,11 +24,19 @@ export function dayIndex(measuredAt: Date, slot: Date, timeZone: string = STOCKH
   return Math.round((Date.UTC(b.year, b.month, b.day) - Date.UTC(a.year, a.month, a.day)) / 86_400_000);
 }
 
+const key = (s: Slot) => `${s.caregiverId}|${s.start.getTime()}`;
+
+/** The slots with each caregiver and start time once, whichever procedure id named it. */
+export function uniqueSlots(slots: Slot[]): Slot[] {
+  return [...new Map(slots.map((s) => [key(s), s])).values()];
+}
+
 export function summarize(slots: Slot[], measuredAt: Date, timeZone: string = STOCKHOLM): SlotSummary {
   const sorted = [...slots].sort((a, b) => a.start.getTime() - b.start.getTime());
   const count = (lastDay: number) =>
     sorted.filter((s) => dayIndex(measuredAt, s.start, timeZone) <= lastDay).length;
-  const first = sorted[0];
+  // The first free slot counts only up to day 29; later is "None in 30 days" (plan 5.4).
+  const first = sorted.find((s) => dayIndex(measuredAt, s.start, timeZone) <= 29);
   return {
     slots7: count(6),
     slots14: count(13),
@@ -36,8 +45,6 @@ export function summarize(slots: Slot[], measuredAt: Date, timeZone: string = ST
     firstFreeDays: first ? dayIndex(measuredAt, first.start, timeZone) : null,
   };
 }
-
-const key = (s: Slot) => `${s.caregiverId}|${s.procedureId}|${s.start.getTime()}`;
 
 export type Comparison = {
   /** Booking-system slots within 14 days that patients can't book on the web. */
@@ -60,12 +67,15 @@ export function compareSlots(
   const inWindow = (s: Slot) => s.start >= window.from && s.start < window.to;
   const within14 = (s: Slot) => dayIndex(measuredAt, s.start, timeZone) <= 13;
   const webKeys = new Set(web.filter(inWindow).map(key));
+  // Only a treatment that is online can have early slots apart; when it isn't,
+  // every booking-system slot counts.
+  const online = web.some(within14);
   const earlyEnd = window.from.getTime() + 2 * 60 * 60_000;
   let slotsNotOnline = 0;
   let earlyOnly = 0;
-  for (const slot of epr) {
+  for (const slot of uniqueSlots(epr)) {
     if (!inWindow(slot) || !within14(slot) || webKeys.has(key(slot))) continue;
-    if (slot.start.getTime() < earlyEnd && webKeys.size > 0) earlyOnly++;
+    if (slot.start.getTime() < earlyEnd && online) earlyOnly++;
     else slotsNotOnline++;
   }
   return { slotsNotOnline, earlyOnly };

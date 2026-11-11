@@ -2,13 +2,14 @@ import type { Client } from "pg";
 
 import { addDays, STOCKHOLM, zonedDay, zonedDayStart, zonedParts } from "../../src/lib/time";
 
-// Made-up data for the Availability pages (plan 15.3): six clinics in three
+// Made-up data for the Availability pages (plan 15.3): seven clinics in three
 // regions and four treatments, a measurement at 08 on each of the last 99
 // days with daily values, and the two latest even hours today. Every status
 // on the pages appears: Good, Mixed and Low, Short, Mixed and Long, slots not
 // online on a treatment that is online and on one that isn't (one of them new
 // in the latest run), a clinic with nothing online that Muntra has activated,
-// and one with nothing at all. Two changes in the offering mark the charts.
+// one with nothing at all, and one whose oralcare.se couldn't be measured
+// today (plan 5.7). Two changes in the offering mark the charts.
 // All names are made up.
 
 const HOUR = 3_600_000;
@@ -23,6 +24,8 @@ type Pair = {
   first: number;
   /** Days back the slots not online started, with how many; "latest" is only the latest run. */
   hidden?: { since: number | "latest"; slots: number };
+  /** oralcare.se couldn't be measured in today's two runs (plan 5.7). */
+  failsToday?: boolean;
 };
 
 export const SEED_REGIONS = [
@@ -101,6 +104,13 @@ export const SEED_CLINICS: {
     },
   },
   { slug: "zeta", name: "Oral Care Zeta", city: "Zetaby", region: "syd", pairs: {} },
+  {
+    slug: "eta",
+    name: "Oral Care Eta",
+    city: "Etaby",
+    region: "syd",
+    pairs: { "muntra-checkup-1": { web: 10, epr: 10, first: 1, failsToday: true } },
+  },
 ];
 
 /** A weekly wave around today's value, never below 1 for a treatment that is online today. */
@@ -248,28 +258,32 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
               : (web ?? 0) + hidden;
         const first = web && web > 0 ? pair.first : null;
         const limits = thresholds.get(webKey) ?? thresholds.get(null)!;
+        // A web read that failed: no value and no comparison, never 0.
+        const failed = pair.failsToday === true && isLatest;
+        const statusOf = (source: number, slots: number | null) =>
+          failed && source === webId ? "could_not_be_measured" : status(slots);
         comparisons.push({
           clinic_id: clinicId,
           treatment_id: treatmentId,
-          web_slots: web,
+          web_slots: failed ? null : web,
           epr_slots: epr,
-          slots_not_online: epr === null ? 0 : hidden,
+          slots_not_online: failed ? null : epr === null ? 0 : hidden,
         });
         if (isLatest) {
           for (const [source, slots] of [
-            [webId, web],
+            [webId, failed ? null : web],
             [eprId, epr],
           ] as const) {
             measurements.push({
               clinic_id: clinicId,
               treatment_id: treatmentId,
               source_system_id: source,
-              status: status(slots),
+              status: statusOf(source, slots),
               slots_7: slots,
               slots_14: slots,
               slots_30: slots === null ? null : slots * 2,
               first_free_at:
-                source === webId && first !== null
+                source === webId && first !== null && !failed
                   ? new Date(zonedDayStart(addDays(day, first)).getTime() + 10 * HOUR).toISOString()
                   : null,
             });
@@ -277,7 +291,7 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
         }
         if (!isLatest || point === latest) {
           for (const [source, slots] of [
-            [webId, web],
+            [webId, failed ? null : web],
             [eprId, epr],
           ] as const) {
             const online = source === webId && slots !== null && slots > 0;
@@ -285,9 +299,9 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
               clinic_id: clinicId,
               treatment_id: treatmentId,
               source_system_id: source,
-              status: status(slots),
+              status: statusOf(source, slots),
               slots_14: slots,
-              first_free_days: source === webId ? first : null,
+              first_free_days: source === webId && !failed ? first : null,
               availability: online ? (slots >= limits.good_min_slots ? "good" : "low") : null,
               waiting_time:
                 online && first !== null ? (first <= limits.short_max_days ? "short" : "long") : null,

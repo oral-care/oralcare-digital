@@ -87,7 +87,7 @@ export function exampleEmails(): Record<string, Email> {
     }),
     "4-summary": summaryEmail({
       day: at("2026-10-31T12:00:00Z"),
-      measurements: { ran: 9, expected: 9 },
+      measurements: { ran: 9, expected: 9, late: 0 },
       coverage: 99.4,
       backupDone: true,
       attention: exampleAlerts(["vercel_token"]).map((a) => alertLine(a)),
@@ -96,6 +96,7 @@ export function exampleEmails(): Record<string, Email> {
           name: "Sweden",
           availability: { good: 6, mixed: 11, low: 8, notOnline: 5 },
           waitingTime: { short: 5, mixed: 14, long: 6, notOnline: 5 },
+          couldNotBeMeasured: 0,
           slotsNotOnline: 5,
         },
       ],
@@ -111,7 +112,7 @@ export function exampleEmails(): Record<string, Email> {
     }),
     "4-summary-every-row": summaryEmail({
       day: at("2026-10-31T12:00:00Z"),
-      measurements: { ran: 7, expected: 9 },
+      measurements: { ran: 7, expected: 9, late: 1 },
       coverage: 91.2,
       backupDone: false,
       attention: [...exampleAlerts(GUARD_ALERTS), ...exampleAlerts(["slots_not_online"])].map((a) =>
@@ -120,8 +121,9 @@ export function exampleEmails(): Record<string, Email> {
       markets: [
         {
           name: "Sweden",
-          availability: { good: 6, mixed: 11, low: 8, notOnline: 5 },
-          waitingTime: { short: 5, mixed: 14, long: 6, notOnline: 5 },
+          availability: { good: 6, mixed: 11, low: 6, notOnline: 5 },
+          waitingTime: { short: 5, mixed: 14, long: 4, notOnline: 5 },
+          couldNotBeMeasured: 2,
           slotsNotOnline: 0,
         },
       ],

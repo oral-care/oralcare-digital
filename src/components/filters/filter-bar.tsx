@@ -47,17 +47,18 @@ export function FilterBar({ show, clinics, regions, treatments, today, firstDay 
   const setTreatments = (next: number[]) =>
     update(withFilters(filters, { treatments: allIfEvery(next, treatments.length), hidden: [] }));
 
+  // Only ids that exist count, so an old link never says "1 treatment" for one
+  // that has left the booking menu.
   const nameText = <T extends { id: number; name: string }>(
     chosen: number[],
     list: T[],
     all: string,
     count: string,
-  ) =>
-    chosen.length === 0
-      ? t(all)
-      : chosen.length === 1
-        ? (list.find((x) => x.id === chosen[0])?.name ?? t(count, { count: 1 }))
-        : t(count, { count: chosen.length });
+  ) => {
+    if (chosen.length === 0) return t(all);
+    const known = list.filter((x) => chosen.includes(x.id));
+    return known.length === 1 ? known[0]!.name : t(count, { count: known.length });
+  };
 
   const { full, partial } = regionStates(clinics, regionNames, filters.clinics);
   const chosenRegions = [...full, ...partial];

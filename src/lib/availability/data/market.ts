@@ -78,8 +78,13 @@ export const marketData = cache(async (market: MarketCode): Promise<MarketData |
       [countryId],
     ),
     pool.query<{ latest_id: number | null; latest_at: Date | null; first_at: Date | null }>(
+      // The first day is the first run that measured anything; the first
+      // runs in step 1 only wrote to the run log (plan 4.4, the calendar).
       `SELECT (array_agg(r.id ORDER BY r.started_at DESC))[1] AS latest_id,
-              max(r.started_at) AS latest_at, min(r.started_at) AS first_at
+              max(r.started_at) AS latest_at,
+              min(r.started_at) FILTER (
+                WHERE EXISTS (SELECT 1 FROM availability.comparison x WHERE x.job_run_id = r.id)
+              ) AS first_at
        FROM core.job_run r
        WHERE r.job = 'availability' AND r.status = 'succeeded' AND r.country_id = $1`,
       [countryId],

@@ -44,6 +44,7 @@
       "someMissing": "{count, plural, one {# measurement is missing} other {# measurements are missing}}",
       "measurements": "Measurements",
       "of": "of {count}",
+      "ofLate": "of {count}, {late} late",
       "coverage": "Coverage",
       "backup": "Backup",
       "backupDone": "Done",
@@ -58,6 +59,7 @@
       "mixedWaitingTime": "Mixed waiting time",
       "long": "Long waiting time",
       "notOnline": "Not online",
+      "couldNotBeMeasured": "Could not be measured",
       "clinics": "{count, plural, one {# clinic} other {# clinics}}",
       "slotsNotOnline": "Slots not online",
       "slotsNotOnlineRow": "Clinics with slots in Muntra that patients can't book",
@@ -289,7 +291,8 @@
       "onSite": {
         "label": "On oralcare.se",
         "note": "Treatments patients can book online here."
-      }
+      },
+      "unknown": "{count, plural, one {# clinic} other {# clinics}} could not be measured."
     },
     "monthAhead": {
       "title": "Month ahead",
@@ -300,7 +303,8 @@
       "largest": "The largest share is in the {region} region ({clinics, plural, one {# clinic} other {# clinics}}), <b>{share}</b>.",
       "most": "The clinic with the most is <b>{clinic}</b>, with <b>{share}</b> of all slots.",
       "smallest": "The smallest share is in the {region} region ({clinics, plural, one {# clinic} other {# clinics}}), <b>{share}</b>.",
-      "fewest": "The clinic with the fewest is <b>{clinic}</b>, with <b>{slots, plural, one {# slot} other {# slots}}</b>."
+      "fewest": "The clinic with the fewest is <b>{clinic}</b>, with <b>{slots, plural, one {# slot} other {# slots}}</b>.",
+      "unknown": "Month ahead can't be shown: {count, plural, one {# clinic} other {# clinics}} could not be measured in the latest measurement."
     },
     "overTime": "Free slots over time",
     "nothingMatches": {

@@ -8,12 +8,12 @@ import { StatCard, StatGrid } from "@/components/availability/stat-card";
 import { SlotsChart } from "@/components/charts/slots-chart";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { marketData } from "@/lib/availability/data/market";
-import { changesByDay, dailySums, valuesFor } from "@/lib/availability/data/series";
+import { changesByDay, dailySums, measuredDays, valuesFor } from "@/lib/availability/data/series";
 import { snapshotFor } from "@/lib/availability/data/snapshot";
 import { clinicStatuses, webState } from "@/lib/availability/figures";
 import { parseFilters, periodOnly, periodRange, type SearchParams } from "@/lib/availability/filters";
 import { formatCount } from "@/lib/availability/format";
-import { clinicTreatmentRows, pairsOf } from "@/lib/availability/views";
+import { clinicSlotsNotOnline, clinicTreatmentRows, pairsOf } from "@/lib/availability/views";
 import { isMarketCode } from "@/lib/markets";
 import { dayLabel, daySpan } from "@/lib/time";
 
@@ -55,18 +55,21 @@ export default async function Clinic({
   const range = periodRange(filters, data.today, data.firstDay);
   const days = daySpan(range.from, range.to);
 
-  const [snapshot, sums, markers, label] = await Promise.all([
+  const [snapshot, sums, measured, markers, label] = await Promise.all([
     snapshotFor(data, range.to),
     dailySums(data, range, { by: "treatment", clinics: [clinic.id], treatments: null }),
+    measuredDays(data, range, clinic.id),
     changesByDay(data, range, { clinics: null, treatments: null, onlyClinic: clinic.id }),
     periodText(filters, range),
   ]);
   const pairs = pairsOf(snapshot.pairs, clinic.id, null);
   const empty = snapshot.pairs.length === 0;
-  const online = data.treatments.filter((tr) =>
-    pairs.some((p) => p.treatmentId === tr.id && webState(p) === "online"),
-  ).length;
-  const hidden = pairs.reduce((sum, p) => sum + (p.slotsNotOnline ?? 0), 0);
+  // A treatment that could not be measured makes the count n/a (plan 5.7).
+  const online = pairs.some((p) => webState(p) === "unknown")
+    ? null
+    : data.treatments.filter((tr) => pairs.some((p) => p.treatmentId === tr.id && webState(p) === "online"))
+        .length;
+  const hidden = clinicSlotsNotOnline(pairs);
   const series = data.treatments
     .map((treatment) => ({
       key: String(treatment.id),
@@ -99,16 +102,16 @@ export default async function Clinic({
         <StatGrid columns={2}>
           <StatCard
             label={t("cards.onSite.label")}
-            value={formatCount(online)}
+            value={online === null ? t("na") : formatCount(online)}
             unit={t("unit.ofTreatments", { total: data.treatments.length })}
             note={t("cards.onSite.note")}
           />
           <StatCard
             label={t("cards.slotsNotOnline.label")}
-            value={formatCount(hidden)}
-            unit={t("unit.slots", { count: hidden })}
+            value={hidden === null ? t("na") : formatCount(hidden)}
+            unit={hidden === null ? "" : t("unit.slots", { count: hidden })}
             note={t("cards.slotsNotOnline.note")}
-            attention={hidden > 0}
+            attention={(hidden ?? 0) > 0}
           />
         </StatGrid>
       </Section>
@@ -126,7 +129,15 @@ export default async function Clinic({
           series={
             series.length > 0
               ? series
-              : [{ key: "all", name: t("clinic.allTreatments"), color: 1, values: days.map(() => 0) }]
+              : // Nothing online: a line at 0 on the days the clinic was measured, gaps on the rest (plan 4.6).
+                [
+                  {
+                    key: "all",
+                    name: t("clinic.allTreatments"),
+                    color: 1,
+                    values: days.map((day) => (measured.has(day) ? 0 : null)),
+                  },
+                ]
           }
           markers={markers}
         />

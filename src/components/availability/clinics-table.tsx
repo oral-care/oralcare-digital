@@ -100,7 +100,9 @@ export async function ClinicsTable({
                   ) : null}
                 </td>
                 <td className={cn(CELL, NUM)}>
-                  {row.slotsNotOnline > 0 ? (
+                  {row.slotsNotOnline === null ? (
+                    <span className="text-muted-foreground">{t("na")}</span>
+                  ) : row.slotsNotOnline > 0 ? (
                     <strong className="font-semibold">{formatCount(row.slotsNotOnline)}</strong>
                   ) : (
                     <span className="text-muted-foreground">0</span>

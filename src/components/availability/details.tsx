@@ -97,12 +97,12 @@ export async function ByTreatmentTable({
                     {row.treatment.name}
                   </Link>
                 </td>
-                <td className={cn(CELL, NUM)}>{formatCount(row.freeSlots)}</td>
+                <td className={cn(CELL, NUM)}>{row.unknown ? t("na") : formatCount(row.freeSlots)}</td>
                 <td className={cn(CELL, NUM)}>
-                  {t("ofClinics", { count: row.onlineAt, total: row.clinics })}
+                  {row.unknown ? t("na") : t("ofClinics", { count: row.onlineAt, total: row.clinics })}
                 </td>
                 <td className={cn(CELL, "whitespace-nowrap")}>
-                  {row.typicalWait ? waitText(t, row.typicalWait) : null}
+                  {row.unknown ? t("na") : row.typicalWait ? waitText(t, row.typicalWait) : null}
                 </td>
                 <td className={CELL}>
                   <Sparkline values={row.spark} />
@@ -175,10 +175,18 @@ export async function ByClinicTable({
                 {row.single ? (
                   <>
                     <td className={cn(CELL, NUM)}>
-                      {row.single.slots === null ? null : formatCount(row.single.slots)}
+                      {row.single.unknown
+                        ? t("na")
+                        : row.single.slots === null
+                          ? null
+                          : formatCount(row.single.slots)}
                     </td>
                     <td className={cn(CELL, "whitespace-nowrap")}>
-                      {row.single.firstFree ? waitText(t, row.single.firstFree) : null}
+                      {row.single.unknown
+                        ? t("na")
+                        : row.single.firstFree
+                          ? waitText(t, row.single.firstFree)
+                          : null}
                     </td>
                     <td className={CELL}>
                       <Sparkline values={row.single.spark} />

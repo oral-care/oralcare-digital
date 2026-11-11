@@ -1,4 +1,4 @@
-import { compareSlots } from "@/lib/availability/compare";
+import { compareSlots, uniqueSlots } from "@/lib/availability/compare";
 import { SourceFormatError } from "@/lib/availability/sources/oralcare-se";
 import type { MeasurementWindow } from "@/lib/availability/window";
 
@@ -86,7 +86,7 @@ export async function collect(input: CollectInput): Promise<Collected> {
       const respondedAt = at();
       return result.kind === "not-found"
         ? { kind: "not-found", requestedAt, respondedAt }
-        : { kind: "slots", slots: result.slots, requestedAt, respondedAt };
+        : { kind: "slots", slots: uniqueSlots(result.slots), requestedAt, respondedAt };
     } catch (error) {
       return failed(error, requestedAt);
     }
@@ -100,7 +100,8 @@ export async function collect(input: CollectInput): Promise<Collected> {
       const parts = await Promise.all(
         procedureIds.map((id) => sources.epr.readSlots(pair.eprId, id, window)),
       );
-      return { kind: "slots", slots: parts.flat(), requestedAt, respondedAt: at() };
+      // A slot named under several of the treatment's procedure ids is one slot (plan 6.2).
+      return { kind: "slots", slots: uniqueSlots(parts.flat()), requestedAt, respondedAt: at() };
     } catch (error) {
       return failed(error, requestedAt);
     }

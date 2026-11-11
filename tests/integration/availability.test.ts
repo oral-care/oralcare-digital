@@ -339,4 +339,49 @@ describe("a day of measurements", () => {
     expect(log?.details).toMatchObject({ registry: "format", maxLeadDays: 60 });
     expect(log?.error_codes).toEqual(["registry:format"]);
   });
+
+  it("reads Muntra's list at once for a new clinic, so Activated is never guessed", async () => {
+    // A new clinic patients can choose for Undersökning, with no slots in Muntra
+    // and a caregiver who has it activated.
+    const changed = fixtureRegistry();
+    const newClinic = {
+      ...changed.clinics[0]!,
+      eprId: "9999",
+      slug: "ny-klinik",
+      name: "Ny klinik",
+    };
+    changed.clinics = [...changed.clinics, newClinic];
+    changed.selectable.set(CHECKUP, [...changed.selectable.get(CHECKUP)!.slice(0, 2), newClinic]);
+    changed.treatments = changed.treatments.filter((t) => t.internalKey !== WHITENING);
+    changed.selectable.delete(WHITENING);
+    changed.maxLeadDays = 60;
+    web.registry = changed;
+    epr.activation.set("9999", new Map([["1", new Set(["caregiver-1"])]]));
+    const activationBefore = epr.activationCalls;
+
+    expect(await run("2026-11-06T19:10:00Z")).toMatchObject({ status: "succeeded" });
+    const runId = runIds["2026-11-06T19:10:00Z"]!;
+
+    // Only the new clinic's list is read, outside 08.
+    expect(epr.activationCalls).toBe(activationBefore + 1);
+    expect(await measurement(runId, "9999", CHECKUP, "muntra")).toMatchObject({
+      status: "measured",
+      slots_14: 0,
+      caregivers_activated: 1,
+    });
+    const [offering] = await rows<{ epr_activated: boolean }>(
+      `SELECT o.epr_activated FROM core.clinic_treatment_offering o
+       JOIN core.clinic_external_id e ON e.clinic_id = o.clinic_id AND upper_inf(e.valid_during) AND e.external_id = '9999'
+       JOIN core.treatment t ON t.id = o.treatment_id AND t.web_key = $1
+       WHERE upper_inf(o.valid_during)`,
+      [CHECKUP],
+    );
+    expect(offering).toEqual({ epr_activated: true });
+    // A partial read doesn't count as the day's list.
+    const [log] = await rows<{ details: Record<string, unknown> }>(
+      "SELECT details FROM core.job_run WHERE id = $1",
+      [runId],
+    );
+    expect(log?.details).toMatchObject({ activationFetched: false });
+  });
 });

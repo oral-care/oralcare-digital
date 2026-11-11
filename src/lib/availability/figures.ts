@@ -81,11 +81,13 @@ export type ClinicStatuses = { availability: ClinicAvailability; waitingTime: Cl
 
 /**
  * A clinic's statuses from its pairs (plan 5.2). Only treatments that are
- * online count. Unknown when nothing about the clinic could be measured.
+ * online count. Unknown when any of the clinic's treatments could not be
+ * measured on oralcare.se (plan 5.7), so a status never rests on part of the
+ * clinic.
  */
 export function clinicStatuses(pairs: PairValue[], snapshotEmpty = false): ClinicStatuses {
   const states = pairs.map(webState);
-  if (snapshotEmpty || (states.length > 0 && states.every((s) => s === "unknown"))) {
+  if (snapshotEmpty || states.includes("unknown")) {
     return { availability: "unknown", waitingTime: "unknown" };
   }
   const online = pairs.filter((_, i) => states[i] === "online");
@@ -121,11 +123,14 @@ export type CardCounts = {
   mixedWait: number;
   long: number;
   notOnline: number;
+  /** Clinics that could not be measured, counted in no card (plan 5.7). */
+  unknown: number;
 };
 
 export function cardCounts(statuses: ClinicStatuses[], clinicsWithSlotsNotOnline: number): CardCounts {
   const count = (test: (s: ClinicStatuses) => boolean) => statuses.filter(test).length;
   return {
+    unknown: count((s) => s.availability === "unknown"),
     good: count((s) => s.availability === "good"),
     mixed: count((s) => s.availability === "mixed"),
     low: count((s) => s.availability === "low"),
@@ -137,10 +142,14 @@ export function cardCounts(statuses: ClinicStatuses[], clinicsWithSlotsNotOnline
   };
 }
 
-/** The lower middle value, as the prototype; null without values (plan 5.5, Typical wait). */
+/** The median in whole days, half a day up; null without values (plan 5.5, Typical wait). */
 export function median(values: number[]): number | null {
+  if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
-  return sorted.length > 0 ? sorted[Math.floor((sorted.length - 1) / 2)]! : null;
+  const middle = sorted.length / 2;
+  const value =
+    sorted.length % 2 === 1 ? sorted[Math.floor(middle)]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
+  return Math.floor(value + 0.5);
 }
 
 const mean = (values: (number | null)[]) => {
@@ -162,6 +171,8 @@ export function changeFromPrevious(period: (number | null)[], previous: (number 
 /** Month ahead (plan 5.6): the parts of the text, from the slots within 30 days on oralcare.se. */
 export type MonthAhead =
   | { kind: "none" }
+  /** Some clinics in the filter could not be measured (plan 5.7). */
+  | { kind: "unknown"; clinics: number }
   | { kind: "single"; total: number; clinic: string }
   | {
       kind: "many";
@@ -179,6 +190,10 @@ export function monthAhead(
   pairs: PairValue[],
   clinics: Map<number, { name: string; region: string }>,
 ): MonthAhead {
+  const unknown = new Set(
+    pairs.filter((p) => clinics.has(p.clinicId) && webState(p) === "unknown").map((p) => p.clinicId),
+  );
+  if (unknown.size > 0) return { kind: "unknown", clinics: unknown.size };
   const byClinic = new Map<number, number>();
   for (const pair of pairs) {
     if (pair.web?.status !== "measured" || !clinics.has(pair.clinicId)) continue;
