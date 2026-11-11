@@ -194,7 +194,7 @@ export async function loadContext(
     `SELECT DISTINCT ON (treatment_web_key) id, treatment_web_key, good_min_slots, short_max_days
      FROM availability.status_threshold_version
      WHERE country_id = $1 AND valid_from <= now()
-     ORDER BY treatment_web_key, valid_from DESC`,
+     ORDER BY treatment_web_key, valid_from DESC, id DESC`,
     [countryId],
   );
 
