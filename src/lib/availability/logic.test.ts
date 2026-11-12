@@ -69,13 +69,13 @@ describe("days and counts", () => {
     expect(summary.firstFreeAt).toEqual(at("2026-11-02T13:00:00Z"));
   });
 
-  it("finds the first slot only up to day 29 (plan 5.4)", () => {
+  it("finds the first slot however far ahead it is, and counts 30 days to day 29 (plan 5.4)", () => {
     // Monday 2 Nov at 23:00 Swedish time; 2 Dec is day 30.
     const measured = at("2026-11-02T22:00:00Z");
     expect(summarize([slot("2026-12-02T08:00:00Z")], measured)).toMatchObject({
       slots30: 0,
-      firstFreeAt: null,
-      firstFreeDays: null,
+      firstFreeAt: at("2026-12-02T08:00:00Z"),
+      firstFreeDays: 30,
     });
     expect(summarize([slot("2026-12-01T08:00:00Z")], measured).firstFreeDays).toBe(29);
   });

@@ -95,7 +95,8 @@ export type StatusCounts<K extends string> = Record<K | "mixed" | "notOnline", n
 
 export type MarketSummary = {
   name: string;
-  availability: StatusCounts<"good" | "low">;
+  /** Later: nothing online, but a first slot after 14 days (plan 5.1). */
+  availability: StatusCounts<"good" | "low" | "later">;
   waitingTime: StatusCounts<"short" | "long">;
   /** Clinics with a value that could not be measured, counted in neither list (plan 5.7). */
   couldNotBeMeasured: number;
@@ -180,6 +181,7 @@ export function summaryEmail(data: SummaryData): Email {
         { label: t("email.summary.good"), value: clinics(a.good) },
         { label: t("email.summary.mixedAvailability"), value: clinics(a.mixed) },
         { label: t("email.summary.low"), value: clinics(a.low) },
+        { label: t("email.summary.later"), value: clinics(a.later), muted: true },
         { label: t("email.summary.notOnline"), value: clinics(a.notOnline), muted: true },
         ...unknown,
       ]),

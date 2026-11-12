@@ -94,8 +94,8 @@ export function exampleEmails(): Record<string, Email> {
       markets: [
         {
           name: "Sweden",
-          availability: { good: 6, mixed: 11, low: 8, notOnline: 5 },
-          waitingTime: { short: 5, mixed: 14, long: 6, notOnline: 5 },
+          availability: { good: 6, mixed: 11, low: 8, later: 2, notOnline: 3 },
+          waitingTime: { short: 5, mixed: 14, long: 8, notOnline: 3 },
           couldNotBeMeasured: 0,
           slotsNotOnline: 5,
         },
@@ -121,8 +121,8 @@ export function exampleEmails(): Record<string, Email> {
       markets: [
         {
           name: "Sweden",
-          availability: { good: 6, mixed: 11, low: 6, notOnline: 5 },
-          waitingTime: { short: 5, mixed: 14, long: 4, notOnline: 5 },
+          availability: { good: 6, mixed: 11, low: 6, later: 2, notOnline: 3 },
+          waitingTime: { short: 5, mixed: 14, long: 6, notOnline: 3 },
           couldNotBeMeasured: 2,
           slotsNotOnline: 0,
         },

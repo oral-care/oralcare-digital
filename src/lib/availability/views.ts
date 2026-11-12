@@ -10,9 +10,11 @@ import {
   type EprState,
   type PairValue,
   type WebState,
+  type WebValue,
 } from "./figures";
 import type { Sort } from "./filters";
 import type { WaitingTime } from "./statuses";
+import { WINDOW_DAYS } from "./window";
 
 // The rows of the Availability tables (plan 4.4-4.7), built from the values
 // of one measurement or day and the daily sums. Pure module: the pages read
@@ -21,10 +23,11 @@ import type { WaitingTime } from "./statuses";
 export type ClinicRef = { id: number; name: string; region: string };
 export type TreatmentRef = { id: number; name: string };
 
-/** When the first slot is: days from today, or none within 30 days. */
-export type FirstFree = { days: number } | "none";
+/** When the first slot is: days from today, or none in the days oralcare.se was searched (plan 5.4). */
+export type FirstFree = { days: number } | { noneIn: number };
 
-const firstFree = (days: number | null): FirstFree => (days === null ? "none" : { days });
+const firstFree = (web: WebValue | null | undefined): FirstFree =>
+  web?.firstFreeDays != null ? { days: web.firstFreeDays } : { noneIn: web?.searchedDays ?? WINDOW_DAYS };
 
 const pairKey = (clinicId: number, treatmentId: number) => `${clinicId}|${treatmentId}`;
 
@@ -93,6 +96,7 @@ export function treatmentRows(input: {
     if (measured.length === 0 && !unknown) return [];
     const online = measured.filter((p) => webState(p) === "online");
     const waits = online.map((p) => p.web?.firstFreeDays).filter((d): d is number => d != null);
+    const typicalWait = median(waits);
     const spark = input.spark(treatment.id);
     return [
       {
@@ -101,7 +105,7 @@ export function treatmentRows(input: {
         freeSlots: measured.reduce((sum, p) => sum + (p.web?.slots14 ?? 0), 0),
         onlineAt: online.length,
         clinics: input.clinics.size,
-        typicalWait: online.length > 0 ? firstFree(median(waits)) : null,
+        typicalWait: typicalWait === null ? null : { days: typicalWait },
         spark,
         change: changeFromPrevious(spark, input.previous(treatment.id)),
       },
@@ -160,7 +164,7 @@ export function clinicRows(input: {
           : {
               unknown: chosen !== undefined && chosen !== null && webState(chosen) === "unknown",
               slots: measured ? (chosen?.web?.slots14 ?? 0) : null,
-              firstFree: measured ? firstFree(chosen?.web?.firstFreeDays ?? null) : null,
+              firstFree: measured ? firstFree(chosen?.web) : null,
               spark: input.spark(clinic.id),
             },
     };
@@ -241,6 +245,8 @@ export type TreatmentAvailability =
 export type ClinicTreatmentRow = {
   treatment: TreatmentRef;
   site: WebState;
+  /** With site "later": the first slot's day, YYYY-MM-DD. */
+  firstSlot: string | null;
   muntra: EprState;
   /** Empty (null) when not activated in Muntra. */
   slotsInMuntra: number | "unknown" | null;
@@ -271,17 +277,18 @@ export function clinicTreatmentRows(input: {
         muntra === "notActivated"
           ? { kind: "noSlotsInMuntra", attention: true }
           : { kind: pair?.web?.availability === "good" ? "good" : "low" };
-    } else if (site === "notOnline") {
+    } else if (site === "notOnline" || site === "later") {
       if ((notOnline ?? 0) > 0) availability = { kind: "slotsNotOnline", slots: notOnline ?? 0 };
       else if (activated) availability = { kind: "noSlotsInMuntra", attention: false };
     }
     let first: ClinicTreatmentRow["firstFree"] = null;
-    if (site === "online") first = firstFree(pair?.web?.firstFreeDays ?? null);
+    if (site === "online" || site === "later") first = firstFree(pair?.web);
     else if (site === "unknown") first = "unknown";
     else if (activated && (inMuntra ?? 0) > 0) first = "zero";
     return {
       treatment,
       site,
+      firstSlot: site === "later" ? (pair?.web?.firstFreeDate ?? null) : null,
       muntra,
       slotsInMuntra: muntra === "unknown" ? "unknown" : inMuntra,
       slotsNotOnline: muntra === "unknown" ? "unknown" : notOnline,
@@ -297,6 +304,7 @@ export type HiddenGroup = {
   rows: {
     treatment: TreatmentRef;
     onSite: number | null;
+    firstSlot: string | null;
     inMuntra: number | null;
     since: string | null;
   }[];
@@ -310,6 +318,7 @@ export function hiddenGroups(input: {
     clinicId: number;
     treatmentId: number;
     onSite: number | null;
+    firstSlot: string | null;
     inMuntra: number | null;
     since: string | null;
   }[];
@@ -317,7 +326,17 @@ export function hiddenGroups(input: {
   return input.clinics.flatMap((clinic) => {
     const rows = input.treatments.flatMap((treatment) => {
       const row = input.rows.find((r) => r.clinicId === clinic.id && r.treatmentId === treatment.id);
-      return row ? [{ treatment, onSite: row.onSite, inMuntra: row.inMuntra, since: row.since }] : [];
+      return row
+        ? [
+            {
+              treatment,
+              onSite: row.onSite,
+              firstSlot: row.firstSlot,
+              inMuntra: row.inMuntra,
+              since: row.since,
+            },
+          ]
+        : [];
     });
     return rows.length > 0 ? [{ clinic, rows }] : [];
   });

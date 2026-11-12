@@ -21,6 +21,8 @@ export type CollectInput = {
   window: MeasurementWindow;
   /** The run's start: the web is asked from here and clamps to its own lead time. */
   measuredAt: Date;
+  /** How far ahead patients can book, for the first slot when the window has none (plan 6.3). */
+  bookingLimit: Date;
   timeZone: string;
   clock: Clock;
   /** Clinics whose activation list is due in this run. Empty when it isn't. */
@@ -83,10 +85,26 @@ export async function collect(input: CollectInput): Promise<Collected> {
     const requestedAt = at();
     try {
       const result = await sources.web.readSlots(pair.eprId, pair.webKey, measuredAt, window.to);
-      const respondedAt = at();
-      return result.kind === "not-found"
-        ? { kind: "not-found", requestedAt, respondedAt }
-        : { kind: "slots", slots: uniqueSlots(result.slots), requestedAt, respondedAt };
+      if (result.kind === "not-found") return { kind: "not-found", requestedAt, respondedAt: at() };
+      const slots = uniqueSlots(result.slots);
+      if (slots.length > 0 || input.bookingLimit <= window.to) {
+        return { kind: "slots", slots, requestedAt, respondedAt: at() };
+      }
+      // Nothing in the window: the web is asked once more, from the window's end
+      // to the booking limit, for the first slot only (plan 5.1 and 6.3).
+      const later = await sources.web.readSlots(pair.eprId, pair.webKey, window.to, input.bookingLimit);
+      if (later.kind === "not-found") return { kind: "not-found", requestedAt, respondedAt: at() };
+      const starts = later.slots.map((s) => s.start.getTime()).filter((t) => t >= window.to.getTime());
+      return {
+        kind: "slots",
+        slots,
+        requestedAt,
+        respondedAt: at(),
+        later: {
+          firstAt: starts.length > 0 ? new Date(Math.min(...starts)) : null,
+          until: input.bookingLimit,
+        },
+      };
     } catch (error) {
       return failed(error, requestedAt);
     }

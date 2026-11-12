@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // The statuses' look (plan 4.12): Good and Short green-grey, Low and Long light
 // orange with an orange dot, Mixed grey with an orange dot, slots not online
-// orange and Not online grey without a dot.
+// orange, and First slot and Not online grey without a dot.
 
 export type BadgeTone = "good" | "low" | "mixed" | "attention" | "neutral";
 
@@ -39,6 +39,7 @@ export function availabilityTone(status: ClinicAvailability): BadgeTone | null {
       return "low";
     case "mixed":
       return "mixed";
+    case "later":
     case "notOnline":
       return "neutral";
     case "unknown":

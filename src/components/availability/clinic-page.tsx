@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -9,7 +9,7 @@ import { formatCount } from "@/lib/availability/format";
 import type { ClinicTreatmentRow } from "@/lib/availability/views";
 import { cn } from "@/lib/utils";
 
-import { waitText } from "./labels";
+import { availabilityText, firstSlotText, waitText } from "./labels";
 import { Panel } from "./section";
 import { availabilityTone, StatusBadge, waitingTone } from "./status-badge";
 
@@ -49,7 +49,9 @@ export async function ClinicHeader({
           <>
             {availability ? (
               <StatusBadge tone={availability}>
-                {t("clinic.availability", { status: t(`status.${statuses.availability}`) })}
+                {statuses.availability === "later"
+                  ? availabilityText(t, statuses)
+                  : t("clinic.availability", { status: t(`status.${statuses.availability}`) })}
               </StatusBadge>
             ) : null}
             {waiting ? (
@@ -65,8 +67,8 @@ export async function ClinicHeader({
   );
 }
 
-function YesNo({ yes, children }: { yes: boolean; children: React.ReactNode }) {
-  const Icon = yes ? Check : X;
+function YesNo({ yes, icon, children }: { yes: boolean; icon?: LucideIcon; children: React.ReactNode }) {
+  const Icon = icon ?? (yes ? Check : X);
   return (
     <span
       className={cn(
@@ -110,6 +112,10 @@ export async function ClinicTreatmentsTable({ rows }: { rows: ClinicTreatmentRow
                 <td className={CELL}>
                   {row.site === "unknown" ? (
                     t("na")
+                  ) : row.site === "later" && row.firstSlot ? (
+                    <YesNo yes={false} icon={CalendarClock}>
+                      {firstSlotText(t, row.firstSlot)}
+                    </YesNo>
                   ) : (
                     <YesNo yes={online}>{online ? t("clinic.bookable") : t("status.notOnline")}</YesNo>
                   )}

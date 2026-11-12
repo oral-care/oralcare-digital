@@ -10,6 +10,7 @@ import { formatCount } from "@/lib/availability/format";
 import type { ClinicListRow } from "@/lib/availability/views";
 import { cn } from "@/lib/utils";
 
+import { availabilityText } from "./labels";
 import { Panel } from "./section";
 import { availabilityTone, StatusBadge, waitingTone } from "./status-badge";
 
@@ -91,7 +92,7 @@ export async function ClinicsTable({
                 </td>
                 <td className={CELL}>
                   {availability ? (
-                    <StatusBadge tone={availability}>{t(`status.${row.statuses.availability}`)}</StatusBadge>
+                    <StatusBadge tone={availability}>{availabilityText(t, row.statuses)}</StatusBadge>
                   ) : null}
                 </td>
                 <td className={CELL}>

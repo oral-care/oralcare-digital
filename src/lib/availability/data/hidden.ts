@@ -16,6 +16,8 @@ export type HiddenRow = {
   treatmentId: number;
   /** Free slots on oralcare.se within 14 days; null when the treatment is not online. */
   onSite: number | null;
+  /** When it isn't online but has a later slot: the first slot's day, YYYY-MM-DD (plan 4.7). */
+  firstSlot: string | null;
   inMuntra: number | null;
   /** The first day of the difference, YYYY-MM-DD. */
   since: string | null;
@@ -53,6 +55,7 @@ export async function hiddenSlots(data: MarketData): Promise<HiddenRow[]> {
     clinicId: p.clinicId,
     treatmentId: p.treatmentId,
     onSite: webState(p) === "online" ? (p.web?.slots14 ?? null) : null,
+    firstSlot: webState(p) === "later" ? (p.web?.firstFreeDate ?? null) : null,
     inMuntra: p.epr?.slots14 ?? null,
     since: sinceOf.get(`${p.clinicId}|${p.treatmentId}`) ?? null,
   }));

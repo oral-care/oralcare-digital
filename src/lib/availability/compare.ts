@@ -35,8 +35,8 @@ export function summarize(slots: Slot[], measuredAt: Date, timeZone: string = ST
   const sorted = [...slots].sort((a, b) => a.start.getTime() - b.start.getTime());
   const count = (lastDay: number) =>
     sorted.filter((s) => dayIndex(measuredAt, s.start, timeZone) <= lastDay).length;
-  // The first free slot counts only up to day 29; later is "None in 30 days" (plan 5.4).
-  const first = sorted.find((s) => dayIndex(measuredAt, s.start, timeZone) <= 29);
+  // The first free slot counts however far ahead it is (plan 5.4).
+  const first = sorted[0];
   return {
     slots7: count(6),
     slots14: count(13),

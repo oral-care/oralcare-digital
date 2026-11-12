@@ -108,9 +108,11 @@ export async function summaryData(
 
 /**
  * Each clinic on oralcare.se counted once per group, from yesterday's daily
- * values, the way the pages count (plan 5.2, 5.7 and 5.8): only treatments in
- * the booking menu, only online treatments for the statuses, and a clinic with
- * a value that could not be measured on its own row instead of Not online.
+ * values, the way the pages count (plan 5.1, 5.2, 5.7 and 5.8): only
+ * treatments in the booking menu, only online treatments for the statuses, a
+ * clinic with nothing online but a later slot as First slot and Long, and a
+ * clinic with a value that could not be measured on its own row instead of
+ * Not online.
  */
 export async function marketSummary(
   client: Client,
@@ -123,10 +125,12 @@ export async function marketSummary(
     status: string | null;
     availability: "good" | "low" | null;
     waiting_time: "short" | "long" | null;
+    first_free_days: number | null;
     job_run_id: string | null;
     slots_not_online: number | null;
   }>(
-    `SELECT c.id AS clinic_id, d.status, d.availability, d.waiting_time, d.job_run_id, x.slots_not_online
+    `SELECT c.id AS clinic_id, d.status, d.availability, d.waiting_time, d.first_free_days, d.job_run_id,
+            x.slots_not_online
      FROM core.clinic c
      JOIN core.clinic_external_id w ON w.clinic_id = c.id AND upper_inf(w.valid_during)
        AND w.source_system_id = (SELECT id FROM core.source_system WHERE role = 'web' LIMIT 1)
@@ -142,13 +146,20 @@ export async function marketSummary(
 
   const byClinic = new Map<
     number,
-    { unknown: boolean; availability: ("good" | "low")[]; waiting: ("short" | "long")[]; hidden: boolean }
+    {
+      unknown: boolean;
+      availability: ("good" | "low")[];
+      waiting: ("short" | "long")[];
+      later: boolean;
+      hidden: boolean;
+    }
   >();
   for (const row of rows.rows) {
     const clinic = byClinic.get(row.clinic_id) ?? {
       unknown: false,
       availability: [],
       waiting: [],
+      later: false,
       hidden: false,
     };
     if (row.status === "could_not_be_measured") clinic.unknown = true;
@@ -156,16 +167,24 @@ export async function marketSummary(
     if (row.availability !== null) {
       clinic.availability.push(row.availability);
       if (row.waiting_time !== null) clinic.waiting.push(row.waiting_time);
+    } else if (row.status === "measured" && row.first_free_days !== null) {
+      // Not online within 14 days, but bookable later (plan 5.1).
+      clinic.later = true;
     }
     if ((row.slots_not_online ?? 0) > 0) clinic.hidden = true;
     byClinic.set(row.clinic_id, clinic);
   }
-  const availability = { good: 0, low: 0, mixed: 0, notOnline: 0 };
+  const availability = { good: 0, low: 0, mixed: 0, later: 0, notOnline: 0 };
   const waitingTime = { short: 0, long: 0, mixed: 0, notOnline: 0 };
   let couldNotBeMeasured = 0;
   for (const clinic of byClinic.values()) {
     if (clinic.unknown) {
       couldNotBeMeasured++;
+      continue;
+    }
+    if (clinic.availability.length === 0 && clinic.later) {
+      availability.later++;
+      waitingTime.long++;
       continue;
     }
     availability[clinicStatus(clinic.availability)]++;
