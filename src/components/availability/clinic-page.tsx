@@ -9,7 +9,7 @@ import { formatCount } from "@/lib/availability/format";
 import type { ClinicTreatmentRow } from "@/lib/availability/views";
 import { cn } from "@/lib/utils";
 
-import { availabilityText, firstSlotText, waitText } from "./labels";
+import { availabilityText, firstSlotText, noneInText, waitText } from "./labels";
 import { Panel } from "./section";
 import { availabilityTone, StatusBadge, waitingTone } from "./status-badge";
 
@@ -43,8 +43,8 @@ export async function ClinicHeader({
       </Link>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-h3">{name}</h1>
-        {statuses.availability === "notOnline" ? (
-          <StatusBadge tone="neutral">{t("status.notOnline")}</StatusBadge>
+        {statuses.availability === "notOnline" || statuses.availability === "noneInWindow" ? (
+          <StatusBadge tone="neutral">{availabilityText(t, statuses)}</StatusBadge>
         ) : (
           <>
             {availability ? (
@@ -116,6 +116,8 @@ export async function ClinicTreatmentsTable({ rows }: { rows: ClinicTreatmentRow
                     <YesNo yes={false} icon={CalendarClock}>
                       {firstSlotText(t, row.firstSlot)}
                     </YesNo>
+                  ) : row.site === "noneInWindow" && row.noneIn ? (
+                    <YesNo yes={false}>{noneInText(t, row.noneIn)}</YesNo>
                   ) : (
                     <YesNo yes={online}>{online ? t("clinic.bookable") : t("status.notOnline")}</YesNo>
                   )}
@@ -149,6 +151,8 @@ export async function ClinicTreatmentsTable({ rows }: { rows: ClinicTreatmentRow
                     <StatusBadge tone={row.availability.attention ? "attention" : "neutral"}>
                       {t("clinic.noSlotsInMuntra")}
                     </StatusBadge>
+                  ) : row.availability.kind === "noSlotsIn14Days" ? (
+                    <StatusBadge tone="neutral">{t("clinic.noSlotsIn14Days")}</StatusBadge>
                   ) : (
                     <StatusBadge tone={row.availability.kind}>
                       {t(`status.${row.availability.kind}`)}

@@ -275,10 +275,21 @@ test("a first slot after 14 days shows its date instead of Not online", async ({
   const checkup = page.getByRole("row", { name: /^Undersökning/ });
   await expect(checkup).toContainText(firstSlot);
   await expect(checkup).toContainText("20 days");
+  // Muntra has the later slot too, so never "No slots in Muntra" (plan 4.6).
+  await expect(checkup).toContainText("No slots in 14 days");
+  await expect(checkup).toContainText("Long");
+  await expect(checkup).not.toContainText("No slots in Muntra");
   await expect(page.getByRole("row", { name: /^Akut/ })).toContainText("Not online");
 
   // No slot as far ahead as patients can book: the days oralcare.se was searched (plan 5.4).
   await page.goto(`/se/availability?c=${MEASURED}`);
   await page.getByRole("link", { name: "Tandhygienist" }).click();
   await expect(page.getByRole("row", { name: /^Oral Care Epsilon/ })).toContainText("None in 90 days");
+
+  // A day whose measurement searched only 30 days: None in 30 days, never Not online (plan 5.1).
+  const day = addDays(today, -3);
+  await page.goto(`/se/availability/clinics/5?p=custom&from=${day}&to=${day}`);
+  const hygiene = page.getByRole("row", { name: /^Tandhygienist/ });
+  await expect(hygiene).toContainText("None in 30 days");
+  await expect(hygiene).not.toContainText("Not online");
 });

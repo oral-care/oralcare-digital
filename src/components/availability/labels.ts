@@ -17,9 +17,14 @@ export function firstSlotText(t: T, day: string): string {
   return t("status.later", { day: shortDate(day) });
 }
 
+/** None in 30 days: a measurement before the change found nothing in the days it searched (plan 5.1). */
+export function noneInText(t: T, days: number): string {
+  return t("wait.none", { count: days });
+}
+
 /** A clinic's availability as its badge says it. */
 export function availabilityText(t: T, statuses: ClinicStatuses): string {
-  return statuses.availability === "later" && statuses.firstSlot
-    ? firstSlotText(t, statuses.firstSlot)
-    : t(`status.${statuses.availability}`);
+  if (statuses.availability === "later" && statuses.firstSlot) return firstSlotText(t, statuses.firstSlot);
+  if (statuses.availability === "noneInWindow" && statuses.noneIn) return noneInText(t, statuses.noneIn);
+  return t(`status.${statuses.availability}`);
 }

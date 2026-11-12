@@ -126,11 +126,14 @@ export async function marketSummary(
     availability: "good" | "low" | null;
     waiting_time: "short" | "long" | null;
     first_free_days: number | null;
+    searched_to_limit: boolean | null;
     job_run_id: string | null;
     slots_not_online: number | null;
   }>(
     `SELECT c.id AS clinic_id, d.status, d.availability, d.waiting_time, d.first_free_days, d.job_run_id,
-            x.slots_not_online
+            x.slots_not_online,
+            round(extract(epoch FROM m.window_end - m.window_start) / 86400)
+              >= coalesce((r.details->>'maxLeadDays')::int, 31) AS searched_to_limit
      FROM core.clinic c
      JOIN core.clinic_external_id w ON w.clinic_id = c.id AND upper_inf(w.valid_during)
        AND w.source_system_id = (SELECT id FROM core.source_system WHERE role = 'web' LIMIT 1)
@@ -139,6 +142,10 @@ export async function marketSummary(
        ON d.clinic_id = c.id AND d.day = $2::date AND d.source_system_id = w.source_system_id
      LEFT JOIN availability.comparison x
        ON x.job_run_id = d.job_run_id AND x.clinic_id = d.clinic_id AND x.treatment_id = d.treatment_id
+     LEFT JOIN availability.measurement m
+       ON m.job_run_id = d.job_run_id AND m.clinic_id = d.clinic_id AND m.treatment_id = d.treatment_id
+         AND m.source_system_id = d.source_system_id
+     LEFT JOIN core.job_run r ON r.id = d.job_run_id
      WHERE c.country_id = $1`,
     [countryId, day],
   );
@@ -151,6 +158,7 @@ export async function marketSummary(
       availability: ("good" | "low")[];
       waiting: ("short" | "long")[];
       later: boolean;
+      noneInWindow: boolean;
       hidden: boolean;
     }
   >();
@@ -160,6 +168,7 @@ export async function marketSummary(
       availability: [],
       waiting: [],
       later: false,
+      noneInWindow: false,
       hidden: false,
     };
     if (row.status === "could_not_be_measured") clinic.unknown = true;
@@ -170,6 +179,9 @@ export async function marketSummary(
     } else if (row.status === "measured" && row.first_free_days !== null) {
       // Not online within 14 days, but bookable later (plan 5.1).
       clinic.later = true;
+    } else if (row.status === "measured" && row.searched_to_limit !== true) {
+      // Nothing in the 30 days a measurement before the change searched (plan 5.1).
+      clinic.noneInWindow = true;
     }
     if ((row.slots_not_online ?? 0) > 0) clinic.hidden = true;
     byClinic.set(row.clinic_id, clinic);
@@ -177,6 +189,7 @@ export async function marketSummary(
   const availability = { good: 0, low: 0, mixed: 0, later: 0, notOnline: 0 };
   const waitingTime = { short: 0, long: 0, mixed: 0, notOnline: 0 };
   let couldNotBeMeasured = 0;
+  let noneInWindow = 0;
   for (const clinic of byClinic.values()) {
     if (clinic.unknown) {
       couldNotBeMeasured++;
@@ -187,11 +200,15 @@ export async function marketSummary(
       waitingTime.long++;
       continue;
     }
+    if (clinic.availability.length === 0 && clinic.noneInWindow) {
+      noneInWindow++;
+      continue;
+    }
     availability[clinicStatus(clinic.availability)]++;
     waitingTime[clinicStatus(clinic.waiting)]++;
   }
   const slotsNotOnline = [...byClinic.values()].filter((c) => c.hidden).length;
-  return { name, availability, waitingTime, couldNotBeMeasured, slotsNotOnline };
+  return { name, availability, waitingTime, noneInWindow, couldNotBeMeasured, slotsNotOnline };
 }
 
 /** Yesterday's changes in the offering as lines, with the names they had last (plan 6.5). */

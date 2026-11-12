@@ -240,6 +240,7 @@ export type TreatmentAvailability =
   | { kind: "good" | "low" }
   | { kind: "slotsNotOnline"; slots: number }
   | { kind: "noSlotsInMuntra"; attention: boolean }
+  | { kind: "noSlotsIn14Days" }
   | null;
 
 export type ClinicTreatmentRow = {
@@ -247,6 +248,8 @@ export type ClinicTreatmentRow = {
   site: WebState;
   /** With site "later": the first slot's day, YYYY-MM-DD. */
   firstSlot: string | null;
+  /** With site "noneInWindow": the days that were searched. */
+  noneIn: number | null;
   muntra: EprState;
   /** Empty (null) when not activated in Muntra. */
   slotsInMuntra: number | "unknown" | null;
@@ -277,9 +280,18 @@ export function clinicTreatmentRows(input: {
         muntra === "notActivated"
           ? { kind: "noSlotsInMuntra", attention: true }
           : { kind: pair?.web?.availability === "good" ? "good" : "low" };
-    } else if (site === "notOnline" || site === "later") {
+    } else if (site !== "unknown") {
+      // Slots in Muntra that patients can't book come first. Otherwise "No slots
+      // in Muntra" only for Not online when Muntra has none in the 30 days it is
+      // asked, since a later slot on oralcare.se is one of Muntra's (plan 4.6).
       if ((notOnline ?? 0) > 0) availability = { kind: "slotsNotOnline", slots: notOnline ?? 0 };
-      else if (activated) availability = { kind: "noSlotsInMuntra", attention: false };
+      else if (site === "later") availability = { kind: "noSlotsIn14Days" };
+      else if (activated) {
+        availability =
+          site === "notOnline" && pair?.epr?.slots30 === 0
+            ? { kind: "noSlotsInMuntra", attention: false }
+            : { kind: "noSlotsIn14Days" };
+      }
     }
     let first: ClinicTreatmentRow["firstFree"] = null;
     if (site === "online" || site === "later") first = firstFree(pair?.web);
@@ -289,12 +301,14 @@ export function clinicTreatmentRows(input: {
       treatment,
       site,
       firstSlot: site === "later" ? (pair?.web?.firstFreeDate ?? null) : null,
+      noneIn: site === "noneInWindow" ? (pair?.web?.searchedDays ?? null) : null,
       muntra,
       slotsInMuntra: muntra === "unknown" ? "unknown" : inMuntra,
       slotsNotOnline: muntra === "unknown" ? "unknown" : notOnline,
       firstFree: first,
       availability,
-      waitingTime: site === "online" ? (pair?.web?.waitingTime ?? null) : null,
+      // A first slot after 14 days is long (plan 4.6).
+      waitingTime: site === "online" || site === "later" ? (pair?.web?.waitingTime ?? null) : null,
     };
   });
 }
@@ -305,6 +319,7 @@ export type HiddenGroup = {
     treatment: TreatmentRef;
     onSite: number | null;
     firstSlot: string | null;
+    noneIn: number | null;
     inMuntra: number | null;
     since: string | null;
   }[];
@@ -319,6 +334,7 @@ export function hiddenGroups(input: {
     treatmentId: number;
     onSite: number | null;
     firstSlot: string | null;
+    noneIn: number | null;
     inMuntra: number | null;
     since: string | null;
   }[];
@@ -332,6 +348,7 @@ export function hiddenGroups(input: {
               treatment,
               onSite: row.onSite,
               firstSlot: row.firstSlot,
+              noneIn: row.noneIn,
               inMuntra: row.inMuntra,
               since: row.since,
             },
