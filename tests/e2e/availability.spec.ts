@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { addDays, dayLabel, STOCKHOLM, zonedDay } from "../../src/lib/time";
+import { addDays, dayLabel, shortDate, STOCKHOLM, zonedDay } from "../../src/lib/time";
 import { signedInPage } from "./helpers";
 
 // The Availability pages (plan 4.4-4.7 and 15.3) against the made-up data in
@@ -49,8 +49,9 @@ test("the cards count every clinic once per row, and Month ahead sums the next 3
     ["Short waiting time", "2 clinics"],
     // Gamma: Undersökning's first slot in 8 days is long, Akut's tomorrow is short (plan 5.2).
     ["Mixed waiting time", "2 clinics"],
-    ["Long waiting time", "0 clinics"],
-    ["Not online", "2 clinics"],
+    // Delta: nothing online, but a first slot in 20 days, so Long and not Not online (plan 5.2).
+    ["Long waiting time", "1 clinic"],
+    ["Not online", "1 clinic"],
   ];
   for (const [label, count] of expected) await expect(card(page, label), label).toContainText(count);
   // Oral Care Eta couldn't be measured today: in no card, and Month ahead isn't shown (plan 5.7).
@@ -253,4 +254,31 @@ test("Akut is short when the first slot is tomorrow", async ({ browser }) => {
   const akut = page.getByRole("row", { name: /^Akut/ });
   await expect(akut).toContainText("1 day");
   await expect(akut).toContainText("Short");
+});
+
+test("a first slot after 14 days shows its date instead of Not online", async ({ browser }) => {
+  const page = await signedInPage(browser, "viewer");
+  const firstSlot = `First slot ${shortDate(addDays(today, 20))}`;
+  await page.goto("/se/availability/clinics");
+  const delta = page.getByRole("row", { name: /^Oral Care Delta/ });
+  await expect(delta).toContainText("0 of 4");
+  await expect(delta).toContainText(firstSlot);
+  await expect(delta).toContainText("Long");
+  await expect(page.getByRole("row", { name: /^Oral Care Zeta/ })).toContainText("Not online");
+
+  await delta.getByRole("cell").nth(1).click();
+  await expect(page.getByRole("heading", { name: "Oral Care Delta" })).toBeVisible();
+  const heading = page.locator("h1").locator("..");
+  await expect(heading).toContainText(firstSlot);
+  await expect(heading).toContainText("Long waiting time");
+  await expect(heading).not.toContainText("Not online");
+  const checkup = page.getByRole("row", { name: /^Undersökning/ });
+  await expect(checkup).toContainText(firstSlot);
+  await expect(checkup).toContainText("20 days");
+  await expect(page.getByRole("row", { name: /^Akut/ })).toContainText("Not online");
+
+  // No slot as far ahead as patients can book: the days oralcare.se was searched (plan 5.4).
+  await page.goto(`/se/availability?c=${MEASURED}`);
+  await page.getByRole("link", { name: "Tandhygienist" }).click();
+  await expect(page.getByRole("row", { name: /^Oral Care Epsilon/ })).toContainText("None in 90 days");
 });

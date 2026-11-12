@@ -42,6 +42,11 @@ export function measurementWindow(now: Date, leadMinutes: number, maxLeadDays: n
   return { from: new Date(from), to: new Date(Math.max(from, to)) };
 }
 
+/** How far ahead patients can book: the run's start plus maxLeadDays (plan 5.1 and 6.3). */
+export function bookingLimit(now: Date, maxLeadDays: number): Date {
+  return new Date(now.getTime() + maxLeadDays * DAY);
+}
+
 /** Muntra refuses 31 days or more, so longer windows are split into 30-day parts. */
 export function splitForMuntra(window: MeasurementWindow): MeasurementWindow[] {
   const parts: MeasurementWindow[] = [];

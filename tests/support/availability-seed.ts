@@ -7,9 +7,10 @@ import { addDays, STOCKHOLM, zonedDay, zonedDayStart, zonedParts } from "../../s
 // days with daily values, and the two latest even hours today. Every status
 // on the pages appears: Good, Mixed and Low, Short, Mixed and Long, slots not
 // online on a treatment that is online and on one that isn't (one of them new
-// in the latest run), a clinic with nothing online that Muntra has activated,
-// one with nothing at all, and one whose oralcare.se couldn't be measured
-// today (plan 5.7). Two changes in the offering mark the charts.
+// in the latest run), a clinic with nothing online that Muntra has activated
+// and whose first slot is after 14 days (plan 5.1), one with nothing at all,
+// and one whose oralcare.se couldn't be measured today (plan 5.7). Two changes
+// in the offering mark the charts.
 // All names are made up.
 
 const HOUR = 3_600_000;
@@ -22,6 +23,8 @@ type Pair = {
   epr: number | null;
   /** Days to the first slot on the web today. */
   first: number;
+  /** With no slot within 14 days: days to the first slot after them, from the second look (plan 6.3). */
+  later?: number;
   /** Days back the slots not online started, with how many; "latest" is only the latest run. */
   hidden?: { since: number | "latest"; slots: number };
   /** oralcare.se couldn't be measured in today's two runs (plan 5.7). */
@@ -89,7 +92,7 @@ export const SEED_CLINICS: {
     city: "Deltaby",
     region: "mitt",
     pairs: {
-      "muntra-checkup-1": { web: null, epr: 0, first: 0 },
+      "muntra-checkup-1": { web: 0, epr: 0, first: 0, later: 20 },
       "muntra-treatment-23": { web: null, epr: 9, first: 0, hidden: { since: 20, slots: 9 } },
     },
   },
@@ -258,7 +261,7 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
                 ? hidden
                 : pair.epr
               : (web ?? 0) + hidden;
-        const first = web && web > 0 ? pair.first : null;
+        const first = web && web > 0 ? pair.first : web === 0 ? (pair.later ?? null) : null;
         const limits = thresholds.get(webKey) ?? thresholds.get(null)!;
         // A web read that failed: no value and no comparison, never 0.
         const failed = pair.failsToday === true && isLatest;
@@ -288,6 +291,10 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
                 source === webId && first !== null && !failed
                   ? new Date(zonedDayStart(addDays(day, first)).getTime() + 10 * HOUR).toISOString()
                   : null,
+              // No slot in the window: the web was asked again up to the booking limit, 90 days (plan 6.3).
+              window_end: new Date(
+                startedAt.getTime() + (source === webId && slots === 0 ? 90 : 30) * 24 * HOUR,
+              ).toISOString(),
             });
           }
         }
@@ -305,8 +312,13 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
               slots_14: slots,
               first_free_days: source === webId && !failed ? first : null,
               availability: online ? (slots >= limits.good_min_slots ? "good" : "low") : null,
+              // A first slot after 14 days is long too, as the measurement saves it (plan 5.2).
               waiting_time:
-                online && first !== null ? (first <= limits.short_max_days ? "short" : "long") : null,
+                source === webId && slots !== null && !failed && first !== null
+                  ? first <= limits.short_max_days
+                    ? "short"
+                    : "long"
+                  : null,
               threshold_version_id: limits.id,
             });
           }
@@ -322,16 +334,11 @@ export async function seedAvailability(client: Client, now: Date = new Date()): 
     if (measurements.length > 0) {
       await client.query(
         `INSERT INTO availability.measurement (job_run_id, clinic_id, treatment_id, source_system_id, status,
-           slots_7, slots_14, slots_30, first_free_at, window_start, window_end)
-         SELECT $1, r.*, $3, $4 FROM jsonb_to_recordset($2::jsonb)
+           slots_7, slots_14, slots_30, first_free_at, window_end, window_start)
+         SELECT $1, r.*, $3 FROM jsonb_to_recordset($2::jsonb)
            AS r(clinic_id int, treatment_id int, source_system_id smallint, status text, slots_7 int, slots_14 int,
-                slots_30 int, first_free_at timestamptz)`,
-        [
-          latestRunId,
-          JSON.stringify(measurements),
-          startedAt,
-          new Date(startedAt.getTime() + 30 * 24 * HOUR),
-        ],
+                slots_30 int, first_free_at timestamptz, window_end timestamptz)`,
+        [latestRunId, JSON.stringify(measurements), startedAt],
       );
     }
     if (dailyValues.length > 0) {

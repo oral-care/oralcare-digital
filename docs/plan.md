@@ -158,16 +158,16 @@ Rubrik "What patients see" och texten "Free slots patients can book online on or
   - Menyerna stängs med Esc eller ett klick utanför.
 - **Today**, "{N} clinics, next 14 days": åtta kort i två rader. Slutar perioden före idag heter rubriken i stället datumet, till exempel "Mon 26 Oct", och korten visar den dagens dagsvärde.
 
-| Kort                                             | Text under antalet                                                                            |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| Good availability                                | More than 10 slots in every online treatment.                                                 |
-| Mixed availability                               | Good in some online treatments, low in others.                                                |
-| Low availability                                 | 1 to 10 slots in every online treatment.                                                      |
-| Slots not online, med länken "Patient vs Muntra" | Activated in Muntra, not on oralcare.se.                                                      |
-| Short waiting time                               | Akut: first slot today or tomorrow. Others: within 3 days. In every online treatment.         |
-| Mixed waiting time                               | Short in some online treatments, long in others.                                              |
-| Long waiting time                                | Akut: first slot after tomorrow. Others: after 3 days. In every online treatment.             |
-| Not online                                       | No slots patients can book on oralcare.se in the next 14 days, or the clinic can't be chosen. |
+| Kort                                             | Text under antalet                                                                                                    |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Good availability                                | More than 10 slots in every online treatment.                                                                         |
+| Mixed availability                               | Good in some online treatments, low in others.                                                                        |
+| Low availability                                 | 1 to 10 slots in every online treatment.                                                                              |
+| Slots not online, med länken "Patient vs Muntra" | Activated in Muntra, not on oralcare.se.                                                                              |
+| Short waiting time                               | Akut: first slot today or tomorrow. Others: within 3 days. In every online treatment.                                 |
+| Mixed waiting time                               | Short in some online treatments, long in others.                                                                      |
+| Long waiting time                                | Akut: first slot after tomorrow. Others: after 3 days. In every online treatment, or the first slot is after 14 days. |
+| Not online                                       | No slots on oralcare.se as far ahead as patients can book, or the clinic can't be chosen.                             |
 
 Rad 1 är de fyra första korten och rad 2 de fyra sista. Varje kort visar antal kliniker ("1 clinic", "12 clinics") och texten. Varje rad räknar alla kliniker i filtret en gång, utom kliniker som inte kunde mätas (avsnitt 5.7). Kortet Slots not online får orange bakgrund när antalet är över 0.
 
@@ -186,7 +186,7 @@ Rad 1 är de fyra första korten och rad 2 de fyra sista. Varje kort visar antal
 
 ### 4.6 Klinikens sida
 
-- **Rubrik:** länken "← Clinics", klinikens namn med "{läge} availability" och "{läge} waiting time" (eller "Not online"), och "{stad} · Region {region}" under.
+- **Rubrik:** länken "← Clinics", klinikens namn med "{läge} availability" och "{läge} waiting time", "First slot {datum}" och "Long waiting time" när den första tiden är efter 14 dagar (avsnitt 5.1), eller "Not online", och "{stad} · Region {region}" under.
 - **Period** som filter. Tabellen visar periodens sista dag och grafen hela perioden.
 - **Två kort:** On oralcare.se ("3 of 7 treatments", "Treatments patients can book online here.") och Slots not online (orange bakgrund när det är över 0).
 - **Treatments**, "{dag}, next 14 days":
@@ -194,11 +194,11 @@ Rad 1 är de fyra första korten och rad 2 de fyra sista. Varje kort visar antal
 | Kolumn                 | Innehåll                                                                                                                                                   |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Treatment              | Namnet                                                                                                                                                     |
-| oralcare.se            | Bookable eller Not online                                                                                                                                  |
+| oralcare.se            | Bookable, First slot {datum} eller Not online                                                                                                              |
 | In Muntra              | Activated eller Not activated                                                                                                                              |
 | Slots in Muntra        | Lediga tider i Muntra inom 14 dagar                                                                                                                        |
 | Slots not online       | Tider i Muntra som inte går att boka på oralcare.se                                                                                                        |
-| First free slot online | Today, 1 day, {N} days eller None in 30 days. 0 när behandlingen inte är online men aktiverad i Muntra med tider. Tom annars                               |
+| First free slot online | Today, 1 day, {N} days eller None in {N} days (avsnitt 5.4). 0 när behandlingen inte är online men aktiverad i Muntra med tider. Tom annars                |
 | Availability           | Good eller Low. Annars "{N} slots not online" (orange) eller "No slots in Muntra" (grå). Online men inte aktiverad i Muntra: "No slots in Muntra" (orange) |
 | Waiting time           | Short eller Long, bara för behandlingar som är online                                                                                                      |
 
@@ -210,7 +210,7 @@ Rader som inte är online är gråa. Har Muntra 0 tider är Slots not online och
 
 - Rubrik och texten "Free slots in Muntra that patients can't see on oralcare.se."
 - Filter: Clinics.
-- Tabell grupperad per klinik i bokstavsordning, med klinikens namn en gång, linjer bara mellan kliniker och en pil per klinik: Clinic, Treatment, On oralcare.se (antal eller "Not online"), Available in Muntra och Since (första dagen skillnaden mättes, till exempel "Fri 31 Jul"). Hovring markerar hela kliniken, och ett klick öppnar den.
+- Tabell grupperad per klinik i bokstavsordning, med klinikens namn en gång, linjer bara mellan kliniker och en pil per klinik: Clinic, Treatment, On oralcare.se (antal, "First slot {datum}" eller "Not online"), Available in Muntra och Since (första dagen skillnaden mättes, till exempel "Fri 31 Jul"). Hovring markerar hela kliniken, och ett klick öppnar den.
 - Utan skillnader: en bock, "Nothing hidden" och "Patients can see every free slot Muntra has open for online booking."
 
 ### 4.8 Coming soon
@@ -235,47 +235,47 @@ Booking statistics, NPS, Funnel, Tracking Framework och Monitoring visas i menyn
 
 Texterna exakt som de ska stå. En ny rad i texten är en radbrytning i rutan.
 
-| Sida och rubrik                                                            | Text                                                                                                                                                                                             |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| By treatment: Treatment                                                    | A treatment patients can book online on oralcare.se. / Click a row to see it per clinic.                                                                                                         |
-| By treatment: Free slots                                                   | Free slots on oralcare.se in the next 14 days, all clinics in the filter together.                                                                                                               |
-| By treatment: Online at                                                    | Clinics with slots patients can book on oralcare.se, out of all clinics in the filter.                                                                                                           |
-| By treatment: Typical wait                                                 | The median time to the first slot patients can book on oralcare.se, across the clinics where it is online.                                                                                       |
-| By treatment: minigrafen (rubriken är perioden)                            | Free slots on oralcare.se each day in the period. All clinics together.                                                                                                                          |
-| By treatment: Vs previous period                                           | Average free slots per day in this period, compared with the same number of days just before it.                                                                                                 |
-| By clinic och Clinics: Clinic                                              | Click a row to open the clinic's page.                                                                                                                                                           |
-| By clinic och Clinics: Region                                              | The region the clinic belongs to.                                                                                                                                                                |
-| By clinic: Free slots (en behandling vald)                                 | Free slots on oralcare.se in the next 14 days for the chosen treatment.                                                                                                                          |
-| By clinic och klinikens sida: First free slot (online)                     | When the first slot patients can book on oralcare.se is.                                                                                                                                         |
-| By clinic: minigrafen                                                      | Free slots on oralcare.se each day in the period.                                                                                                                                                |
-| By clinic: Treatments with slots                                           | Treatments with slots on oralcare.se, out of the treatments in the filter.                                                                                                                       |
-| By clinic: Fewest slots                                                    | The online treatment with the fewest free slots, and how many.                                                                                                                                   |
-| By clinic och Clinics: Availability                                        | Good: more than 10 slots in the next 14 days. / Low: 1 to 10. / Mixed: the clinic's treatments differ. / Not online: no slots on oralcare.se in the next 14 days, or the clinic can't be chosen. |
-| By clinic och Clinics: Waiting time                                        | Short: first slot today or tomorrow for Akut, within 3 days for other treatments. / Long: later than that. / Mixed: the clinic's treatments differ.                                              |
-| Clinics: Online treatments                                                 | Treatments with slots patients can book on oralcare.se, out of all treatments on oralcare.se.                                                                                                    |
-| Clinics och klinikens sida: Slots not online                               | Free slots in Muntra that patients can't book on oralcare.se.                                                                                                                                    |
-| Klinikens sida: Treatment                                                  | Every treatment patients can book online on oralcare.se.                                                                                                                                         |
-| Klinikens sida: oralcare.se                                                | Bookable: oralcare.se shows free slots for it in the next 14 days. / Not online: no slots on oralcare.se in the next 14 days, or the clinic can't be chosen for it.                              |
-| Klinikens sida: In Muntra                                                  | Activated: at least one caregiver has it open for online booking in Muntra. / Not activated: no caregiver has.                                                                                   |
-| Klinikens sida och Patient vs Muntra: Slots in Muntra, Available in Muntra | Free slots in Muntra in the next 14 days.                                                                                                                                                        |
-| Klinikens sida: Availability                                               | Good: more than 10 slots in the next 14 days. / Low: 1 to 10.                                                                                                                                    |
-| Klinikens sida: Waiting time                                               | Short: first slot today or tomorrow for Akut, within 3 days for other treatments. / Long: later than that.                                                                                       |
-| Patient vs Muntra: Clinic                                                  | Click a row to open the clinic's page.                                                                                                                                                           |
-| Patient vs Muntra: Treatment                                               | The treatment with free slots in Muntra that patients can't see.                                                                                                                                 |
-| Patient vs Muntra: On oralcare.se                                          | Free slots patients can book on oralcare.se in the next 14 days. / Not online: no slots there in the next 14 days, or the clinic can't be chosen for it.                                         |
-| Patient vs Muntra: Since                                                   | The first day the difference was measured.                                                                                                                                                       |
-| Users: User                                                                | Name and work e-mail.                                                                                                                                                                            |
-| Users: Access                                                              | The views the user can open.                                                                                                                                                                     |
-| Users: Markets                                                             | The markets the user can see.                                                                                                                                                                    |
-| Users: Role                                                                | Viewer: sees the views and markets they have access to. / Admin: also invites, changes and removes users.                                                                                        |
-| Users: Last sign-in                                                        | When the user last signed in.                                                                                                                                                                    |
+| Sida och rubrik                                                            | Text                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| By treatment: Treatment                                                    | A treatment patients can book online on oralcare.se. / Click a row to see it per clinic.                                                                                                                                                                                              |
+| By treatment: Free slots                                                   | Free slots on oralcare.se in the next 14 days, all clinics in the filter together.                                                                                                                                                                                                    |
+| By treatment: Online at                                                    | Clinics with slots patients can book on oralcare.se, out of all clinics in the filter.                                                                                                                                                                                                |
+| By treatment: Typical wait                                                 | The median time to the first slot patients can book on oralcare.se, across the clinics where it is online.                                                                                                                                                                            |
+| By treatment: minigrafen (rubriken är perioden)                            | Free slots on oralcare.se each day in the period. All clinics together.                                                                                                                                                                                                               |
+| By treatment: Vs previous period                                           | Average free slots per day in this period, compared with the same number of days just before it.                                                                                                                                                                                      |
+| By clinic och Clinics: Clinic                                              | Click a row to open the clinic's page.                                                                                                                                                                                                                                                |
+| By clinic och Clinics: Region                                              | The region the clinic belongs to.                                                                                                                                                                                                                                                     |
+| By clinic: Free slots (en behandling vald)                                 | Free slots on oralcare.se in the next 14 days for the chosen treatment.                                                                                                                                                                                                               |
+| By clinic och klinikens sida: First free slot (online)                     | When the first slot patients can book on oralcare.se is.                                                                                                                                                                                                                              |
+| By clinic: minigrafen                                                      | Free slots on oralcare.se each day in the period.                                                                                                                                                                                                                                     |
+| By clinic: Treatments with slots                                           | Treatments with slots on oralcare.se, out of the treatments in the filter.                                                                                                                                                                                                            |
+| By clinic: Fewest slots                                                    | The online treatment with the fewest free slots, and how many.                                                                                                                                                                                                                        |
+| By clinic och Clinics: Availability                                        | Good: more than 10 slots in the next 14 days. / Low: 1 to 10. / Mixed: the clinic's treatments differ. / First slot: no slots in the next 14 days, the first is on that date. / Not online: no slots on oralcare.se as far ahead as patients can book, or the clinic can't be chosen. |
+| By clinic och Clinics: Waiting time                                        | Short: first slot today or tomorrow for Akut, within 3 days for other treatments. / Long: later than that, or the first slot is after 14 days. / Mixed: the clinic's treatments differ.                                                                                               |
+| Clinics: Online treatments                                                 | Treatments with slots patients can book on oralcare.se, out of all treatments on oralcare.se.                                                                                                                                                                                         |
+| Clinics och klinikens sida: Slots not online                               | Free slots in Muntra that patients can't book on oralcare.se.                                                                                                                                                                                                                         |
+| Klinikens sida: Treatment                                                  | Every treatment patients can book online on oralcare.se.                                                                                                                                                                                                                              |
+| Klinikens sida: oralcare.se                                                | Bookable: oralcare.se shows free slots for it in the next 14 days. / First slot: no slots in the next 14 days, the first is on that date. / Not online: no slots on oralcare.se as far ahead as patients can book, or the clinic can't be chosen for it.                              |
+| Klinikens sida: In Muntra                                                  | Activated: at least one caregiver has it open for online booking in Muntra. / Not activated: no caregiver has.                                                                                                                                                                        |
+| Klinikens sida och Patient vs Muntra: Slots in Muntra, Available in Muntra | Free slots in Muntra in the next 14 days.                                                                                                                                                                                                                                             |
+| Klinikens sida: Availability                                               | Good: more than 10 slots in the next 14 days. / Low: 1 to 10.                                                                                                                                                                                                                         |
+| Klinikens sida: Waiting time                                               | Short: first slot today or tomorrow for Akut, within 3 days for other treatments. / Long: later than that.                                                                                                                                                                            |
+| Patient vs Muntra: Clinic                                                  | Click a row to open the clinic's page.                                                                                                                                                                                                                                                |
+| Patient vs Muntra: Treatment                                               | The treatment with free slots in Muntra that patients can't see.                                                                                                                                                                                                                      |
+| Patient vs Muntra: On oralcare.se                                          | Free slots patients can book on oralcare.se in the next 14 days. / First slot: none in the next 14 days, the first is on that date. / Not online: no slots there as far ahead as patients can book, or the clinic can't be chosen for it.                                             |
+| Patient vs Muntra: Since                                                   | The first day the difference was measured.                                                                                                                                                                                                                                            |
+| Users: User                                                                | Name and work e-mail.                                                                                                                                                                                                                                                                 |
+| Users: Access                                                              | The views the user can open.                                                                                                                                                                                                                                                          |
+| Users: Markets                                                             | The markets the user can see.                                                                                                                                                                                                                                                         |
+| Users: Role                                                                | Viewer: sees the views and markets they have access to. / Admin: also invites, changes and removes users.                                                                                                                                                                             |
+| Users: Last sign-in                                                        | When the user last signed in.                                                                                                                                                                                                                                                         |
 
 "/" i tabellen ovan betyder radbrytning. Rollens text skiljer sig från prototypen, där den nämner export och inställningar som inte finns i första versionen.
 
 ### 4.12 Utseende
 
 - Samma design tokens och komponenter som oralcare.se, bara ljust tema, och Oral Care Brand Platform: Inter, OC Grey `#FAFAFA`, Clear White, OC Green-skalan, Sharp Black för text, OC Orange `#F7923F` bara för det som kräver uppmärksamhet. Ikoner enligt avsnitt 4.13 och styling enligt avsnitt 4.14.
-- Statusarnas färger: Good och Short gröngrå, Low och Long ljust orange med orange punkt, Mixed grå med orange punkt, "slots not online" orange och Not online grå.
+- Statusarnas färger: Good och Short gröngrå, Low och Long ljust orange med orange punkt, Mixed grå med orange punkt, "slots not online" orange och First slot och Not online grå.
 - Fokusringen är oralcare.se:s grå ring. Inga svarta ramar vid hovring eller fokus.
 - **Tal och datum** på engelska: tusental med komma (3,339), andelar med en decimal (23.1%), datum som "Sat 31 Oct" och "29 Sep".
 - **Skärm:** byggt för datorskärm. Under 1100 px bredd visas två kort per rad. En egen mobilversion ingår inte.
@@ -329,7 +329,10 @@ Texterna exakt som de ska stå. En ny rad i texten är en radbrytning i rutan.
 ### 5.1 Online och Not online
 
 - En behandling är **online** på en klinik när oralcare.se visar lediga tider för den inom 14 dagar.
-- Den är **Not online** när kliniken inte går att välja för behandlingen på oralcare.se, eller när oralcare.se visar 0 tider.
+- Visar oralcare.se tider men den första är efter 14 dagar är den inte online och visas som **First slot {datum}**, till exempel "First slot 7 Dec".
+- Den är **Not online** när kliniken inte går att välja för behandlingen på oralcare.se, eller när oralcare.se inte visar någon tid alls så långt fram som man kan boka (bokningsgränsen, avsnitt 6.2).
+- **Per klinik:** har kliniken något online gäller avsnitt 5.2. Annars visas First slot med den tidigaste tiden bland behandlingarna i filtret, eller Not online när ingen av dem har någon tid.
+- Mätningar från före ändringen sökte bara 30 dagar fram. En behandling utan tid inom dem räknas som Not online de dagarna.
 - **Activated** i Muntra betyder att minst en behandlare på kliniken har behandlingen öppen för onlinebokning i Muntra, även om den inte har lediga tider.
 
 ### 5.2 Availability och Waiting time
@@ -343,7 +346,7 @@ Sätts per klinik och behandling som är online. Startvärden, som ligger i en t
 | Waiting time | Short | Akut: första tid samma dag eller nästa dag. Övriga: inom 3 dagar |
 |              | Long  | Första tiden längre bort än så                                   |
 
-- **Per klinik:** har alla klinikens behandlingar online samma läge får kliniken det, annars **Mixed**. En klinik utan något online är **Not online**.
+- **Per klinik:** har alla klinikens behandlingar online samma läge får kliniken det, annars **Mixed**. En klinik utan något online men med en senare tid visar First slot {datum} i Availability och har **Long** waiting time, eftersom den första tiden är mer än 14 dagar bort. Den räknas så i korten. En klinik utan någon tid är **Not online**.
 - Akuts gräns ändrades 2026-11-11 från samma dag till samma dag eller nästa dag. Den nya gränsen gäller från releasen, och dagsvärden från före den behåller den gamla.
 - Nya behandlingar får gränserna för "Övriga" tills någon sätter egna. Gränserna ändras med en migrering tills det finns ett admin-gränssnitt. Varje status sparas med de gränser som gällde den dagen och räknas aldrig om.
 
@@ -352,14 +355,14 @@ Sätts per klinik och behandling som är online. Startvärden, som ligger i en t
 - Tider i Muntra som patienterna inte kan boka på oralcare.se, inom 14 dagar.
 - Räknas per tid: en tid i Muntra som saknas bland oralcare.se:s tider för samma klinik, behandling, behandlare och starttid. Visar Muntra samma behandlare och starttid under flera av behandlingens Muntra-id räknas tiden en gång.
 - **Slots in Muntra** och **Available in Muntra** räknas över samma tidsfönster som jämförelsen (avsnitt 6.3), så att de går att jämföra med Slots not online.
-- För en behandling som är Not online räknas alla Muntras tider.
+- För en behandling som inte är online räknas alla Muntras tider.
 
 ### 5.4 Tider och dagar
 
 - All tid är svensk tid (Europe/Stockholm). Dagar är kalenderdagar, och idag är dag 0.
 - "Inom 14 dagar" betyder från mättillfället till och med dag 13.
 - Första lediga tid i dagar är tidens datum minus mätningens datum. Mätning måndag kl 08 och första tid torsdag ger 3 dagar.
-- Visas som Today, 1 day, {N} days eller None in 30 days. En första tid räknas bara till och med dag 29; en senare tid är None in 30 days.
+- Visas som Today, 1 day, {N} days eller None in {N} days, där N är hur långt fram oralcare.se söktes. Den första tiden söks fram till bokningsgränsen (avsnitt 6.3), så None in 90 days betyder ingen tid alls. Mätningar från före ändringen sökte bara till och med dag 29 och visar None in 30 days.
 
 ### 5.5 Today och perioder
 
@@ -431,6 +434,7 @@ Varje mätning gäller en marknad. Routen är `/api/cron/availability/{marknad}`
 
 - oralcare.se tillfrågas från mätningens start, som bokningsflödet, och börjar själv vid sin egen gräns. Patientvyns tider (7, 14 och 30 dagar och första lediga tid) räknas på allt oralcare.se visar.
 - Jämförelsen görs över samma fönster för båda källorna, och Muntra tillfrågas bara över det. `from` är anropstid plus L plus 5 minuter, avrundat uppåt till 5 minuter, plus 5 minuter. L är oralcare.se:s minsta framförhållning vid bokning, som inte publiceras. Den räknas fram vid varje mätning ur de sparade mätningarna: det minsta observerade avståndet mellan anropstid och första tid på oralcare.se under de senaste 7 dygnen, minus 5 minuter. Den är minst 20 minuter (oralcare.se:s standard) och högst 180. `to` är `from` plus 30 dagar, högst `maxLeadDays`.
+- Visar oralcare.se ingen tid i fönstret för en behandling frågas den en gång till, från fönstrets slut fram till bokningsgränsen (`maxLeadDays`), för att hitta den första tiden (avsnitt 5.1). Bara första tiden sparas, och de tiderna jämförs aldrig med Muntra. Det blir några anrop per mätning, inom dygnsbudgeten.
 - Ingen tid på oralcare.se får börja före gränsen. Det kontrolleras vid varje mätning.
 - Tider som bara finns i Muntra under fönstrets första 2 timmar, på minst 3 kliniker i samma mätning, är en avvikelse i fönstret. Den larmar och räknas inte som slots not online.
 - Visar oralcare.se en tid före anropstiden är det ett fel i insamlaren, och det larmar.
@@ -559,8 +563,8 @@ Skickas av vakten till varje admin för sig, en gång per dygn, med innehållet 
   | Admin            | {namn} hasn't signed in for 12 months                    | Admins are never removed automatically. Larmet sparar bara användarens id; namnet läses in när sammanfattningen skrivs                    |
   | Rättigheter      | A database role has unexpected rights                    | {roll}: {skillnad}.                                                                                                                       |
 
-- Availability i varje marknad med data: Good, Mixed, Low och Not online, räknade som på sidorna (avsnitt 5.2, 5.7 och 5.8). Kliniker som inte kunde mätas står på en egen rad, "Could not be measured", när de finns;
-- Waiting time: Short, Mixed, Long och Not online, bara över behandlingar som är online, som på sidorna;
+- Availability i varje marknad med data: Good, Mixed, Low, First slot after 14 days och Not online, räknade som på sidorna (avsnitt 5.2, 5.7 och 5.8). Kliniker som inte kunde mätas står på en egen rad, "Could not be measured", när de finns;
+- Waiting time: Short, Mixed, Long och Not online, bara över behandlingar som är online, och en klinik med First slot som Long, som på sidorna;
 - Slots not online: antal kliniker, som kortet på sidan;
 - gårdagens ändringar i utbudet;
 - antal serverfel i appen, bara om det fanns några (avsnitt 12);
@@ -1028,7 +1032,7 @@ Körs två gånger, med `TZ=UTC` och `TZ=America/New_York`, så att inget beror 
 - **Källornas scheman:** varje svar från oralcare.se och Muntra tolkas från fixturer. Saknade fält och ändrade typer ger rätt fel, och nya fält ignoreras.
 - **Tidsfönstret:** `from`, `to`, framförhållning, `maxLeadDays` och delning över 30 dagar.
 - **Matchning och slots not online**, även för behandlingar som inte är online.
-- **Statusar:** Good, Low, Short och Long vid gränserna, Mixed per klinik och Not online.
+- **Statusar:** Good, Low, Short och Long vid gränserna, Mixed per klinik, First slot och Not online.
 - **Schemapunkter:** anropets timme till svensk schemapunkt, mätning, omförsök och avslut, på sommartid, vintertid och båda bytena, och med start när som helst under timmen, som på Hobby.
 - **Dagsvärdet:** 08, omförsöket kl 09 och reserven kl 10.
 - **Bannern:** de två senaste schemapunkterna, även före kl 08.

@@ -16,7 +16,14 @@ import { activatedCaregivers, type Activation } from "./registry";
 export type FormatProblem = { source: string; path: string; expected: string; received: string };
 
 export type SourceResult =
-  | { kind: "slots"; slots: Slot[]; requestedAt: Date; respondedAt: Date }
+  | {
+      kind: "slots";
+      slots: Slot[];
+      requestedAt: Date;
+      respondedAt: Date;
+      /** The web's second look, when the window had no slot: the first slot up to the booking limit. */
+      later?: { firstAt: Date | null; until: Date };
+    }
   | { kind: "not-found"; requestedAt: Date; respondedAt: Date }
   | {
       kind: "failed";
@@ -137,11 +144,13 @@ export function evaluate(input: EvaluateInput): Evaluation {
     const stored = ctx.offerings.get(pair.key);
     const activated = caregivers !== null ? caregivers > 0 : stored?.eprActivated;
 
+    // The web's window ends where it was last asked: the booking limit after a second look.
+    const webEnd = (result.web?.kind === "slots" && result.web.later?.until) || window.to;
     const web = toRow(
       pair,
       "web",
       result.web,
-      { start: measuredAt, end: window.to },
+      { start: measuredAt, end: webEnd },
       measuredAt,
       timeZone,
       minutes,
@@ -319,9 +328,13 @@ function toRow(
   if (result.kind === "not-found") return { ...base, status: "could_not_be_measured", reason: "http_404" };
   if (result.kind === "failed") return { ...base, status: "could_not_be_measured", reason: result.reason };
   const sorted = [...result.slots].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const summary = summarize(sorted, measuredAt, timeZone);
+  // Only the first slot of the second look is kept (plan 6.3).
+  const later = summary.firstFreeAt === null ? (result.later?.firstAt ?? null) : null;
   return {
     ...base,
-    ...summarize(sorted, measuredAt, timeZone),
+    ...summary,
+    ...(later && { firstFreeAt: later, firstFreeDays: dayIndex(measuredAt, later, timeZone) }),
     status: "measured",
     reason: null,
     startMinutes: minutes(sorted),

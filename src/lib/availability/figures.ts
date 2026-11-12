@@ -25,6 +25,10 @@ export type WebValue = {
   /** Only the latest measurement has it; daily values don't keep it. */
   slots30: number | null;
   firstFreeDays: number | null;
+  /** The first slot's day, YYYY-MM-DD, however far ahead it is. */
+  firstFreeDate: string | null;
+  /** How many days ahead oralcare.se was searched: the booking limit, or 30 before that (plan 5.4). */
+  searchedDays: number;
   availability: Availability | null;
   waitingTime: WaitingTime | null;
 };
@@ -52,14 +56,19 @@ export function withStatuses(
   };
 }
 
-/** What patients see (plan 5.1): online with slots within 14 days, not online, or unknown. */
-export type WebState = "online" | "notOnline" | "unknown";
+/**
+ * What patients see (plan 5.1): online with slots within 14 days, a first slot
+ * later than that, not online with no slot as far ahead as they can book, or
+ * unknown.
+ */
+export type WebState = "online" | "later" | "notOnline" | "unknown";
 
 export function webState(pair: PairValue | undefined): WebState {
   const web = pair?.web;
   if (!web || web.status === "not_offered") return "notOnline";
   if (web.status === "could_not_be_measured") return "unknown";
-  return (web.slots14 ?? 0) > 0 ? "online" : "notOnline";
+  if ((web.slots14 ?? 0) > 0) return "online";
+  return web.firstFreeDate !== null ? "later" : "notOnline";
 }
 
 /**
@@ -75,35 +84,52 @@ export function eprState(pair: PairValue | undefined): EprState {
   return "activated";
 }
 
-export type ClinicAvailability = ClinicStatus<Availability> | "unknown";
+export type ClinicAvailability = ClinicStatus<Availability> | "later" | "unknown";
 export type ClinicWaitingTime = ClinicStatus<WaitingTime> | "unknown";
-export type ClinicStatuses = { availability: ClinicAvailability; waitingTime: ClinicWaitingTime };
+export type ClinicStatuses = {
+  availability: ClinicAvailability;
+  waitingTime: ClinicWaitingTime;
+  /** With availability "later": the earliest first slot, YYYY-MM-DD (plan 5.1). */
+  firstSlot: string | null;
+};
 
 /**
  * A clinic's statuses from its pairs (plan 5.2). Only treatments that are
- * online count. Unknown when any of the clinic's treatments could not be
- * measured on oralcare.se (plan 5.7), so a status never rests on part of the
- * clinic.
+ * online count. A clinic with nothing online but a later slot shows its first
+ * slot and has a long waiting time (plan 5.1). Unknown when any of the
+ * clinic's treatments could not be measured on oralcare.se (plan 5.7), so a
+ * status never rests on part of the clinic.
  */
 export function clinicStatuses(pairs: PairValue[], snapshotEmpty = false): ClinicStatuses {
   const states = pairs.map(webState);
   if (snapshotEmpty || states.includes("unknown")) {
-    return { availability: "unknown", waitingTime: "unknown" };
+    return { availability: "unknown", waitingTime: "unknown", firstSlot: null };
   }
   const online = pairs.filter((_, i) => states[i] === "online");
+  const firstSlot =
+    pairs
+      .filter((_, i) => states[i] === "later")
+      .map((p) => p.web?.firstFreeDate ?? null)
+      .filter((d): d is string => d !== null)
+      .sort()[0] ?? null;
+  if (online.length === 0 && firstSlot !== null) {
+    return { availability: "later", waitingTime: "long", firstSlot };
+  }
   return {
     availability: clinicStatus(online.map((p) => p.web?.availability ?? null)),
     waitingTime: clinicStatus(online.map((p) => p.web?.waitingTime ?? null)),
+    firstSlot: null,
   };
 }
 
-/** Weakest first (plan 4.4 and 4.5): Low, Mixed, Good, then Not online. */
+/** Weakest first (plan 4.4 and 4.5): Low, Mixed, Good, a later first slot, then Not online. */
 export const AVAILABILITY_RANK: Record<ClinicAvailability, number> = {
   low: 0,
   mixed: 1,
   good: 2,
-  notOnline: 3,
-  unknown: 4,
+  later: 3,
+  notOnline: 4,
+  unknown: 5,
 };
 export const WAITING_RANK: Record<ClinicWaitingTime, number> = {
   long: 0,

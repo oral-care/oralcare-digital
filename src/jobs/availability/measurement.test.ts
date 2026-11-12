@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Slot } from "@/lib/availability/compare";
 import { SourceFormatError } from "@/lib/availability/sources/oralcare-se";
-import { measurementWindow } from "@/lib/availability/window";
+import { bookingLimit, measurementWindow } from "@/lib/availability/window";
 
 import { SourceRequestError, StopError } from "../runtime/http";
 import { collect, failure } from "./collect";
@@ -230,6 +230,24 @@ describe("evaluate", () => {
       thresholdVersionId: 2,
     });
   });
+
+  it("keeps the first slot of the web's second look, and searched to the booking limit", () => {
+    const limit = bookingLimit(measuredAt, 90);
+    const january = at("2027-01-14T08:00:00Z");
+    const result = evaluate(
+      input(context(), [
+        [pair("a"), { web: { ...answer([]), later: { firstAt: january, until: limit } }, epr: answer([]) }],
+        [pair("b"), { web: { ...answer([]), later: { firstAt: null, until: limit } }, epr: answer([]) }],
+      ]),
+    );
+    const [later, none] = result.measurements.filter((m) => m.source === "web");
+    // A first slot after 14 days: not online, a long waiting time (plan 5.1 and 5.2).
+    expect(later).toMatchObject({ slots14: 0, firstFreeAt: january, firstFreeDays: 73, windowEnd: limit });
+    expect(later?.startMinutes).toEqual([]);
+    expect(none).toMatchObject({ slots14: 0, firstFreeAt: null, firstFreeDays: null, windowEnd: limit });
+    const [daily] = dailyRows(context(), [later!]);
+    expect(daily).toMatchObject({ availability: null, waitingTime: "long", firstFreeDays: 73 });
+  });
 });
 
 describe("diffRegistry", () => {
@@ -373,6 +391,7 @@ describe("collect", () => {
     activationClinics: [],
     activationUntil: measuredAt.getTime() + 1,
     removed: [],
+    bookingLimit: bookingLimit(measuredAt, 90),
   };
   const both = slot("2026-11-04T08:00:00Z");
   const only = slot("2026-11-04T09:00:00Z");
@@ -400,6 +419,50 @@ describe("collect", () => {
     expect(webCalls).toBe(2);
     expect(result.remeasured).toBe(1);
     expect(result.results.get(pairKey("a", CHECKUP))?.web).toMatchObject({ kind: "slots", slots: [both] });
+  });
+
+  it("asks the web once more up to the booking limit when the window has no slot", async () => {
+    const asked: [Date, Date][] = [];
+    const web = (later: Slot[] | Error) => ({
+      key: "web",
+      readRegistry: async () => {
+        throw new Error("unused");
+      },
+      readSlots: async (_clinic: string, _key: string, from: Date, to: Date) => {
+        asked.push([from, to]);
+        if (asked.length === 1) return { kind: "slots" as const, slots: [] };
+        if (later instanceof Error) throw later;
+        return { kind: "slots" as const, slots: later };
+      },
+    });
+    const epr = { key: "epr", readSlots: async () => [], readActivation: async () => new Map() };
+    const january = slot("2027-01-14T08:00:00Z");
+    const found = await collect({
+      ...base,
+      pairs: [pair("a")],
+      sources: { web: web([slot("2027-01-20T08:00:00Z"), january]), epr },
+    });
+    expect(asked).toEqual([
+      [measuredAt, window.to],
+      [window.to, base.bookingLimit],
+    ]);
+    expect(found.results.get(pairKey("a", CHECKUP))?.web).toMatchObject({
+      kind: "slots",
+      slots: [],
+      later: { firstAt: january.start, until: base.bookingLimit },
+    });
+
+    // A second look that fails makes the value one that couldn't be measured, never Not online.
+    asked.length = 0;
+    const failed = await collect({
+      ...base,
+      pairs: [pair("a")],
+      sources: { web: web(new SourceRequestError("oralcare_se", "http_503")), epr },
+    });
+    expect(failed.results.get(pairKey("a", CHECKUP))?.web).toMatchObject({
+      kind: "failed",
+      reason: "http_503",
+    });
   });
 
   it("asks the booking system for the procedure ids the web's slots name", async () => {

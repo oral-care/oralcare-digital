@@ -1,4 +1,4 @@
-import { estimateLeadMinutes, measurementWindow, WINDOW_DAYS } from "@/lib/availability/window";
+import { bookingLimit, estimateLeadMinutes, measurementWindow, WINDOW_DAYS } from "@/lib/availability/window";
 import { REQUIRED_SCHEMA } from "@/lib/db/schema-version";
 import { marketByCode, type MarketCode } from "@/lib/markets";
 import { zonedDay, zonedHour, zonedParts } from "@/lib/time";
@@ -222,6 +222,7 @@ async function measure(run: {
     sources,
     window,
     measuredAt,
+    bookingLimit: bookingLimit(measuredAt, maxLeadDays),
     timeZone,
     clock,
     activationClinics: fullActivation ? activationClinics(ctx, registry) : newPairClinics(ctx, pairs),
