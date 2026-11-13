@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { dayLabel } from "@/lib/time";
 
 import { HiddenGroupBody } from "./hidden-group";
-import { firstSlotText } from "./labels";
+import { firstSlotText, noneInText } from "./labels";
 import { Panel } from "./section";
 
 // Patient vs Muntra (plan 4.7): grouped per clinic, the name once and lines
@@ -64,7 +64,11 @@ export async function HiddenTable({
                   <td className={cn(CELL, NUM, "border-b-0")}>
                     {row.onSite === null ? (
                       <span className="text-muted-foreground">
-                        {row.firstSlot ? firstSlotText(t, row.firstSlot) : t("status.notOnline")}
+                        {row.firstSlot
+                          ? firstSlotText(t, row.firstSlot)
+                          : row.noneIn
+                            ? noneInText(t, row.noneIn)
+                            : t("status.notOnline")}
                       </span>
                     ) : (
                       formatCount(row.onSite)

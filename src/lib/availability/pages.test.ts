@@ -37,6 +37,7 @@ const web = (slots14: number | null, firstFreeDays: number | null = 1, slots30 =
       firstFreeDays: first,
       firstFreeDate: first === null ? null : addDays(TODAY, first),
       searchedDays: 90,
+      searchedToLimit: true,
     },
     thresholds,
   );
@@ -44,12 +45,15 @@ const web = (slots14: number | null, firstFreeDays: number | null = 1, slots30 =
 const pair = (
   clinicId: number,
   treatmentId: number,
-  values: { web?: WebValue | null; epr?: number | null; hidden?: number | null } = {},
+  values: { web?: WebValue | null; epr?: number | null; epr30?: number; hidden?: number | null } = {},
 ): PairValue => ({
   clinicId,
   treatmentId,
   web: values.web ?? null,
-  epr: values.epr === undefined || values.epr === null ? null : { status: "measured", slots14: values.epr },
+  epr:
+    values.epr === undefined || values.epr === null
+      ? null
+      : { status: "measured", slots14: values.epr, slots30: values.epr30 ?? values.epr },
   slotsNotOnline: values.hidden ?? null,
 });
 
@@ -120,11 +124,13 @@ describe("figures", () => {
       availability: "good",
       waitingTime: "short",
       firstSlot: null,
+      noneIn: null,
     });
     expect(clinicStatuses([pair(1, 1, { web: web(20) }), pair(1, 2, { web: web(4, 8) })])).toEqual({
       availability: "mixed",
       waitingTime: "mixed",
       firstSlot: null,
+      noneIn: null,
     });
     // A treatment with 0 slots is not online and doesn't count.
     expect(
@@ -140,29 +146,53 @@ describe("figures", () => {
       availability: "later",
       waitingTime: "long",
       firstSlot: "2026-11-27",
+      noneIn: null,
     });
     // Something online wins: the later treatment is left out, as before.
     expect(clinicStatuses([...later, pair(1, 3, { web: web(20, 0) })])).toEqual({
       availability: "good",
       waitingTime: "short",
       firstSlot: null,
+      noneIn: null,
     });
     // No slot as far ahead as patients can book, or the clinic can't be chosen: Not online.
     expect(clinicStatuses([pair(1, 1, { web: web(0, null) }), pair(1, 2, { web: web(null) })])).toEqual({
       availability: "notOnline",
       waitingTime: "notOnline",
       firstSlot: null,
+      noneIn: null,
+    });
+    // A measurement before the change searched only 30 days: None in 30 days, never Not online.
+    const old: WebValue = { ...web(0, null), searchedDays: 30, searchedToLimit: false };
+    expect(clinicStatuses([pair(1, 1, { web: old }), pair(1, 2, { web: web(null) })])).toEqual({
+      availability: "noneInWindow",
+      waitingTime: "noneInWindow",
+      firstSlot: null,
+      noneIn: 30,
+    });
+    const rows = clinicTreatmentRows({
+      clinicId: 1,
+      treatments: [{ id: 1, name: "Undersökning" }],
+      pairs: [pair(1, 1, { web: old, epr: 0, hidden: 0 })],
+    });
+    expect(rows[0]).toMatchObject({
+      site: "noneInWindow",
+      noneIn: 30,
+      availability: { kind: "noSlotsIn14Days" },
+      waitingTime: null,
     });
   });
 
   it("counts every clinic once per row of cards", () => {
     const statuses = [
-      { availability: "good", waitingTime: "short", firstSlot: null },
-      { availability: "later", waitingTime: "long", firstSlot: "2026-12-07" },
-      { availability: "notOnline", waitingTime: "notOnline", firstSlot: null },
-      { availability: "unknown", waitingTime: "unknown", firstSlot: null },
+      { availability: "good", waitingTime: "short", firstSlot: null, noneIn: null },
+      { availability: "later", waitingTime: "long", firstSlot: "2026-12-07", noneIn: null },
+      { availability: "notOnline", waitingTime: "notOnline", firstSlot: null, noneIn: null },
+      { availability: "noneInWindow", waitingTime: "noneInWindow", firstSlot: null, noneIn: 30 },
+      { availability: "unknown", waitingTime: "unknown", firstSlot: null, noneIn: null },
     ] as const;
     // A clinic with a later first slot is Long in the second row, never Not online (plan 5.2).
+    // One searched only 30 days before the change is in no card of that row (plan 5.1).
     expect(cardCounts([...statuses], 1)).toEqual({
       good: 1,
       mixed: 0,
@@ -172,6 +202,7 @@ describe("figures", () => {
       mixedWait: 0,
       long: 1,
       notOnline: 1,
+      noneInWindow: 1,
       unknown: 1,
     });
   });
@@ -293,15 +324,23 @@ describe("table rows", () => {
   it("a clinic's page follows the rules for every column", () => {
     const rows = clinicTreatmentRows({
       clinicId: 3,
-      treatments: [...treatments, { id: 3, name: "Tandblekning" }, { id: 4, name: "Implantat" }],
+      treatments: [
+        ...treatments,
+        { id: 3, name: "Tandblekning" },
+        { id: 4, name: "Implantat" },
+        { id: 5, name: "Tandreglering" },
+        { id: 6, name: "Blekning" },
+      ],
       pairs: [
         ...pairs,
         pair(3, 1, { web: web(0, null), epr: 0, hidden: 0 }),
         pair(3, 3, { web: web(5, 2) }),
         pair(3, 4, { web: web(0, 35), epr: 2, hidden: 2 }),
+        pair(3, 5, { web: web(0, 15), epr: 0, epr30: 4, hidden: 0 }),
+        pair(3, 6, { web: web(0, null), epr: 0, epr30: 3, hidden: 0 }),
       ],
     });
-    expect(rows.map((r) => r.firstSlot)).toEqual([null, null, null, "2026-12-07"]);
+    expect(rows.map((r) => r.firstSlot)).toEqual([null, null, null, "2026-12-07", "2026-11-17", null]);
     expect(
       rows.map((r) => [
         r.treatment.name,
@@ -338,8 +377,12 @@ describe("table rows", () => {
         { kind: "noSlotsInMuntra", attention: true },
         "short",
       ],
-      // A first slot after 14 days: its days, and Muntra's slots are not online (plan 5.1).
-      ["Implantat", "later", "activated", 2, 2, { days: 35 }, { kind: "slotsNotOnline", slots: 2 }, null],
+      // A first slot after 14 days: its days, Muntra's slots within 14 days not online, and long.
+      ["Implantat", "later", "activated", 2, 2, { days: 35 }, { kind: "slotsNotOnline", slots: 2 }, "long"],
+      // A first slot after 14 days and nothing hidden: never "No slots in Muntra" (plan 4.6).
+      ["Tandreglering", "later", "activated", 0, null, { days: 15 }, { kind: "noSlotsIn14Days" }, "long"],
+      // Not online, but Muntra has slots after day 14: not "No slots in Muntra" either.
+      ["Blekning", "notOnline", "activated", 0, null, null, { kind: "noSlotsIn14Days" }, null],
     ]);
   });
 
@@ -348,8 +391,24 @@ describe("table rows", () => {
       clinics,
       treatments,
       rows: [
-        { clinicId: 3, treatmentId: 2, onSite: null, firstSlot: null, inMuntra: 3, since: "2026-10-12" },
-        { clinicId: 2, treatmentId: 1, onSite: 4, firstSlot: null, inMuntra: 9, since: "2026-10-27" },
+        {
+          clinicId: 3,
+          treatmentId: 2,
+          onSite: null,
+          firstSlot: null,
+          noneIn: null,
+          inMuntra: 3,
+          since: "2026-10-12",
+        },
+        {
+          clinicId: 2,
+          treatmentId: 1,
+          onSite: 4,
+          firstSlot: null,
+          noneIn: null,
+          inMuntra: 9,
+          since: "2026-10-27",
+        },
       ],
     });
     expect(groups.map((g) => [g.clinic.name, g.rows.map((r) => r.treatment.name)])).toEqual([
@@ -367,6 +426,7 @@ describe("what could not be measured (plan 5.7)", () => {
     firstFreeDays: null,
     firstFreeDate: null,
     searchedDays: 90,
+    searchedToLimit: true,
     availability: null,
     waitingTime: null,
   };
@@ -378,7 +438,12 @@ describe("what could not be measured (plan 5.7)", () => {
 
   it("makes a clinic's status n/a when any of its treatments couldn't be measured", () => {
     const statuses = clinicStatuses([pair(1, 1, { web: web(20) }), pair(1, 2, { web: unknown })]);
-    expect(statuses).toEqual({ availability: "unknown", waitingTime: "unknown", firstSlot: null });
+    expect(statuses).toEqual({
+      availability: "unknown",
+      waitingTime: "unknown",
+      firstSlot: null,
+      noneIn: null,
+    });
     // Nothing online and nothing unknown is still Not online.
     expect(clinicStatuses([pair(1, 1, { web: web(null) })]).availability).toBe("notOnline");
   });

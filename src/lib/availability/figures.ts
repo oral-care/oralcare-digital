@@ -29,11 +29,18 @@ export type WebValue = {
   firstFreeDate: string | null;
   /** How many days ahead oralcare.se was searched: the booking limit, or 30 before that (plan 5.4). */
   searchedDays: number;
+  /** Searched as far ahead as patients can book; false for measurements before 2026-11-12 (plan 5.1). */
+  searchedToLimit: boolean;
   availability: Availability | null;
   waitingTime: WaitingTime | null;
 };
 
-export type EprValue = { status: MeasurementStatus; slots14: number | null };
+export type EprValue = {
+  status: MeasurementStatus;
+  slots14: number | null;
+  /** Free slots in the 30 days Muntra is asked; null when its measurement isn't there (plan 4.6). */
+  slots30: number | null;
+};
 
 export type PairValue = {
   clinicId: number;
@@ -58,17 +65,18 @@ export function withStatuses(
 
 /**
  * What patients see (plan 5.1): online with slots within 14 days, a first slot
- * later than that, not online with no slot as far ahead as they can book, or
- * unknown.
+ * later than that, not online with no slot as far ahead as they can book, no
+ * slot in the 30 days a measurement before the change searched, or unknown.
  */
-export type WebState = "online" | "later" | "notOnline" | "unknown";
+export type WebState = "online" | "later" | "noneInWindow" | "notOnline" | "unknown";
 
 export function webState(pair: PairValue | undefined): WebState {
   const web = pair?.web;
   if (!web || web.status === "not_offered") return "notOnline";
   if (web.status === "could_not_be_measured") return "unknown";
   if ((web.slots14 ?? 0) > 0) return "online";
-  return web.firstFreeDate !== null ? "later" : "notOnline";
+  if (web.firstFreeDate !== null) return "later";
+  return web.searchedToLimit ? "notOnline" : "noneInWindow";
 }
 
 /**
@@ -84,13 +92,15 @@ export function eprState(pair: PairValue | undefined): EprState {
   return "activated";
 }
 
-export type ClinicAvailability = ClinicStatus<Availability> | "later" | "unknown";
-export type ClinicWaitingTime = ClinicStatus<WaitingTime> | "unknown";
+export type ClinicAvailability = ClinicStatus<Availability> | "later" | "noneInWindow" | "unknown";
+export type ClinicWaitingTime = ClinicStatus<WaitingTime> | "noneInWindow" | "unknown";
 export type ClinicStatuses = {
   availability: ClinicAvailability;
   waitingTime: ClinicWaitingTime;
   /** With availability "later": the earliest first slot, YYYY-MM-DD (plan 5.1). */
   firstSlot: string | null;
+  /** With availability "noneInWindow": the days that were searched (plan 5.1). */
+  noneIn: number | null;
 };
 
 /**
@@ -103,7 +113,7 @@ export type ClinicStatuses = {
 export function clinicStatuses(pairs: PairValue[], snapshotEmpty = false): ClinicStatuses {
   const states = pairs.map(webState);
   if (snapshotEmpty || states.includes("unknown")) {
-    return { availability: "unknown", waitingTime: "unknown", firstSlot: null };
+    return { availability: "unknown", waitingTime: "unknown", firstSlot: null, noneIn: null };
   }
   const online = pairs.filter((_, i) => states[i] === "online");
   const firstSlot =
@@ -113,12 +123,24 @@ export function clinicStatuses(pairs: PairValue[], snapshotEmpty = false): Clini
       .filter((d): d is string => d !== null)
       .sort()[0] ?? null;
   if (online.length === 0 && firstSlot !== null) {
-    return { availability: "later", waitingTime: "long", firstSlot };
+    return { availability: "later", waitingTime: "long", firstSlot, noneIn: null };
+  }
+  // Nothing online and nothing later, but a treatment searched only 30 days:
+  // whether it had later slots isn't known, so never Not online (plan 5.1).
+  const searched = pairs.filter((_, i) => states[i] === "noneInWindow").map((p) => p.web?.searchedDays ?? 0);
+  if (online.length === 0 && searched.length > 0) {
+    return {
+      availability: "noneInWindow",
+      waitingTime: "noneInWindow",
+      firstSlot: null,
+      noneIn: Math.min(...searched),
+    };
   }
   return {
     availability: clinicStatus(online.map((p) => p.web?.availability ?? null)),
     waitingTime: clinicStatus(online.map((p) => p.web?.waitingTime ?? null)),
     firstSlot: null,
+    noneIn: null,
   };
 }
 
@@ -128,15 +150,17 @@ export const AVAILABILITY_RANK: Record<ClinicAvailability, number> = {
   mixed: 1,
   good: 2,
   later: 3,
-  notOnline: 4,
-  unknown: 5,
+  noneInWindow: 4,
+  notOnline: 5,
+  unknown: 6,
 };
 export const WAITING_RANK: Record<ClinicWaitingTime, number> = {
   long: 0,
   mixed: 1,
   short: 2,
-  notOnline: 3,
-  unknown: 4,
+  noneInWindow: 3,
+  notOnline: 4,
+  unknown: 5,
 };
 
 /** The counts on the eight cards (plan 4.4). Every clinic is counted once per row. */
@@ -149,6 +173,8 @@ export type CardCounts = {
   mixedWait: number;
   long: number;
   notOnline: number;
+  /** Clinics with no slot in the 30 days searched before the change, in no card of row 2 (plan 5.1). */
+  noneInWindow: number;
   /** Clinics that could not be measured, counted in no card (plan 5.7). */
   unknown: number;
 };
@@ -165,6 +191,7 @@ export function cardCounts(statuses: ClinicStatuses[], clinicsWithSlotsNotOnline
     mixedWait: count((s) => s.waitingTime === "mixed"),
     long: count((s) => s.waitingTime === "long"),
     notOnline: count((s) => s.availability === "notOnline"),
+    noneInWindow: count((s) => s.availability === "noneInWindow"),
   };
 }
 

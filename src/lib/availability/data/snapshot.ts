@@ -38,10 +38,16 @@ type Row = {
   epr_slots: number | null;
   /** How many days ahead the web was asked, from its measurement's window. */
   searched_days: number | null;
+  /** The source's free slots within 30 days, from its measurement. */
+  measured_slots_30: number | null;
+  /** The window reached the run's booking limit (plan 5.1). */
+  searched_to_limit: boolean | null;
 };
 
 // The web's window, in whole days: 30 before the booking limit was searched, then the limit (plan 5.4).
 const SEARCHED_DAYS = "round(extract(epoch FROM m.window_end - m.window_start) / 86400)::int";
+// Whether it reached the run's booking limit. A run without one counts as searched further than 30 days.
+const SEARCHED_TO_LIMIT = `${SEARCHED_DAYS} >= coalesce((r.details->>'maxLeadDays')::int, ${WINDOW_DAYS + 1})`;
 
 function pairs(data: MarketData, rows: Row[], web: (row: Row) => WebValue): PairValue[] {
   const clinics = new Set(data.clinics.map((c) => c.id));
@@ -59,7 +65,11 @@ function pairs(data: MarketData, rows: Row[], web: (row: Row) => WebValue): Pair
     };
     if (row.source_system_id === data.webSourceId) pair.web = web(row);
     if (row.source_system_id === data.eprSourceId) {
-      pair.epr = { status: row.status, slots14: row.epr_slots ?? row.slots_14 };
+      pair.epr = {
+        status: row.status,
+        slots14: row.epr_slots ?? row.slots_14,
+        slots30: row.measured_slots_30,
+      };
     }
     byPair.set(key, pair);
   }
@@ -75,8 +85,10 @@ export const latestPairs = cache(async (data: MarketData): Promise<PairValue[]> 
     pool.query<Row>(
       `SELECT m.clinic_id, m.treatment_id, m.source_system_id, m.status, m.slots_14, m.slots_30,
               m.first_free_at, NULL::int AS first_free_days, NULL AS availability, NULL AS waiting_time,
-              x.slots_not_online, x.epr_slots, ${SEARCHED_DAYS} AS searched_days
+              x.slots_not_online, x.epr_slots, ${SEARCHED_DAYS} AS searched_days, m.slots_30 AS measured_slots_30,
+              ${SEARCHED_TO_LIMIT} AS searched_to_limit
        FROM availability.measurement m
+       JOIN core.job_run r ON r.id = m.job_run_id
        LEFT JOIN availability.comparison x
          ON x.job_run_id = m.job_run_id AND x.clinic_id = m.clinic_id AND x.treatment_id = m.treatment_id
        WHERE m.job_run_id = $1`,
@@ -105,6 +117,7 @@ export const latestPairs = cache(async (data: MarketData): Promise<PairValue[]> 
       firstFreeDays: row.first_free_at ? dayIndex(latest.startedAt, row.first_free_at, data.timeZone) : null,
       firstFreeDate: row.first_free_at ? zonedDay(row.first_free_at, data.timeZone) : null,
       searchedDays: row.searched_days ?? WINDOW_DAYS,
+      searchedToLimit: row.searched_to_limit === true,
     };
     // New treatments get the default thresholds until someone sets their own (plan 5.2).
     const thresholds = byKey.get(webKeys.get(row.treatment_id) ?? null) ?? byKey.get(null);
@@ -117,7 +130,8 @@ export const dayPairs = cache(async (data: MarketData, day: string): Promise<Pai
   const rows = await appPool().query<Row>(
     `SELECT d.clinic_id, d.treatment_id, d.source_system_id, d.status, d.slots_14, NULL::int AS slots_30,
             NULL::timestamptz AS first_free_at, d.first_free_days, d.availability, d.waiting_time,
-            x.slots_not_online, x.epr_slots, ${SEARCHED_DAYS} AS searched_days
+            x.slots_not_online, x.epr_slots, ${SEARCHED_DAYS} AS searched_days, m.slots_30 AS measured_slots_30,
+            ${SEARCHED_TO_LIMIT} AS searched_to_limit
      FROM availability.daily_value d
      JOIN core.clinic c ON c.id = d.clinic_id
      LEFT JOIN availability.comparison x
@@ -125,6 +139,7 @@ export const dayPairs = cache(async (data: MarketData, day: string): Promise<Pai
      LEFT JOIN availability.measurement m
        ON m.job_run_id = d.job_run_id AND m.clinic_id = d.clinic_id AND m.treatment_id = d.treatment_id
          AND m.source_system_id = d.source_system_id
+     LEFT JOIN core.job_run r ON r.id = d.job_run_id
      WHERE d.day = $1 AND c.country_id = $2`,
     [day, data.countryId],
   );
@@ -135,6 +150,7 @@ export const dayPairs = cache(async (data: MarketData, day: string): Promise<Pai
     firstFreeDays: row.first_free_days,
     firstFreeDate: row.first_free_days === null ? null : addDays(day, row.first_free_days),
     searchedDays: row.searched_days ?? WINDOW_DAYS,
+    searchedToLimit: row.searched_to_limit === true,
     availability: row.availability,
     waitingTime: row.waiting_time,
   }));

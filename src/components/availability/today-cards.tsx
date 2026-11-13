@@ -10,7 +10,7 @@ import { StatCard, StatGrid } from "./stat-card";
 // counts every clinic in the filter once.
 export async function TodayCards({ counts, hiddenHref }: { counts: CardCounts; hiddenHref: string }) {
   const t = await getTranslations("availability");
-  const card = (key: Exclude<keyof CardCounts, "slotsNotOnline" | "unknown">) => (
+  const card = (key: Exclude<keyof CardCounts, "slotsNotOnline" | "noneInWindow" | "unknown">) => (
     <StatCard
       key={key}
       label={t(`cards.${key}.label`)}
@@ -38,6 +38,12 @@ export async function TodayCards({ counts, hiddenHref }: { counts: CardCounts; h
         {card("long")}
         {card("notOnline")}
       </StatGrid>
+      {/* Clinics with nothing in the 30 days a measurement before the change searched (plan 5.1). */}
+      {counts.noneInWindow > 0 ? (
+        <p className="mt-3 text-paragraph-small text-muted-foreground">
+          {t("cards.noneInWindow", { count: counts.noneInWindow })}
+        </p>
+      ) : null}
       {/* Clinics that could not be measured are in no card (plan 5.7). */}
       {counts.unknown > 0 ? (
         <p className="mt-3 text-paragraph-small text-muted-foreground">

@@ -40,6 +40,7 @@ export function availabilityTone(status: ClinicAvailability): BadgeTone | null {
     case "mixed":
       return "mixed";
     case "later":
+    case "noneInWindow":
     case "notOnline":
       return "neutral";
     case "unknown":
@@ -56,6 +57,7 @@ export function waitingTone(status: ClinicWaitingTime): BadgeTone | null {
       return "low";
     case "mixed":
       return "mixed";
+    case "noneInWindow":
     case "notOnline":
     case "unknown":
       return null;

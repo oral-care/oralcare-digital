@@ -98,6 +98,8 @@ export type MarketSummary = {
   /** Later: nothing online, but a first slot after 14 days (plan 5.1). */
   availability: StatusCounts<"good" | "low" | "later">;
   waitingTime: StatusCounts<"short" | "long">;
+  /** Clinics with nothing in the 30 days a measurement before the change searched (plan 5.1). */
+  noneInWindow: number;
   /** Clinics with a value that could not be measured, counted in neither list (plan 5.7). */
   couldNotBeMeasured: number;
   /** Clinics with slots in the booking system that patients can't book. */
@@ -164,9 +166,13 @@ export function summaryEmail(data: SummaryData): Email {
   data.markets.forEach((market, index) => {
     const a = market.availability;
     const w = market.waitingTime;
-    // Clinics that could not be measured are in neither list's counts (plan 5.7).
-    const unknown =
-      market.couldNotBeMeasured > 0
+    // Clinics with nothing in the 30 days searched before the change, and
+    // clinics that could not be measured, are in neither list's counts (plan 5.1 and 5.7).
+    const unknown = [
+      ...(market.noneInWindow > 0
+        ? [{ label: t("email.summary.noneInWindow"), value: clinics(market.noneInWindow), muted: true }]
+        : []),
+      ...(market.couldNotBeMeasured > 0
         ? [
             {
               label: t("email.summary.couldNotBeMeasured"),
@@ -174,7 +180,8 @@ export function summaryEmail(data: SummaryData): Email {
               muted: true,
             },
           ]
-        : [];
+        : []),
+    ];
     blocks.push(
       label(t("email.summary.availabilityIn", { market: market.name }), index === 0 ? 32 : 24),
       list([

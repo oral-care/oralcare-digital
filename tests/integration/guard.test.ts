@@ -441,6 +441,9 @@ describe("the daily summary's figures", () => {
       // Nothing online, but a first slot on day 20: First slot and Long, never Not online (plan 5.1).
       const e = await clinic("summary-e", true);
       await value(e, checkup, { status: "measured", slots: 0, first: 20, waiting: "long" });
+      // No slot, and no measurement that searched to the booking limit: None in 30 days (plan 5.1).
+      const f = await clinic("summary-f", true);
+      await value(f, checkup, { status: "measured", slots: 0 });
       // No longer on oralcare.se: not counted at all.
       const gone = await clinic("summary-gone", false);
       await value(gone, akut, { status: "not_offered", hidden: 3 });
@@ -459,6 +462,7 @@ describe("the daily summary's figures", () => {
           name: "Netherlands",
           availability: { good: 1, low: 0, mixed: 0, later: 1, notOnline: 1 },
           waitingTime: { short: 1, long: 1, mixed: 0, notOnline: 1 },
+          noneInWindow: 1,
           couldNotBeMeasured: 1,
           slotsNotOnline: 1,
         },
@@ -466,6 +470,7 @@ describe("the daily summary's figures", () => {
       const email = summaryEmail({ ...data, attention: [] });
       expect(email.text).toContain("Could not be measured: 1 clinic");
       expect(email.text).toContain("First slot after 14 days: 1 clinic");
+      expect(email.text).toContain("None in 30 days: 1 clinic");
       expect(email.text).toContain("of 9, 1 late");
     } finally {
       await owner.query("ROLLBACK");
