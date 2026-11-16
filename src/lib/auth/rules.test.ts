@@ -4,31 +4,23 @@ import type { ViewKey } from "@/lib/db/schema/auth";
 import type { MarketCode } from "@/lib/markets";
 import { viewOfPath } from "@/lib/modules";
 
-import { isAllowedEmail, marketForEmail, normalizeEmail } from "./allowed-email";
+import { isGroupEmail, marketForEmail, normalizeEmail } from "./allowed-email";
 import { canOpenView, homePath, openMarkets, openViews, type Viewer } from "./permissions";
 import { clientIp } from "./throttle";
 
 // Who may sign in, and what they may open (plan 3, 11 and 15.1).
 
-describe("isAllowedEmail", () => {
-  it("accepts the group's domains, in lower case", () => {
-    expect(isAllowedEmail(" Anna.Lind@OralCare.se ", { trackingOnlyInvitation: false })).toBe(
-      "anna.lind@oralcare.se",
-    );
-    expect(isAllowedEmail("ola@octannklinikker.no", { trackingOnlyInvitation: false })).toBe(
-      "ola@octannklinikker.no",
-    );
+describe("e-mail addresses", () => {
+  it("accepts any domain, in lower case", () => {
+    expect(normalizeEmail(" Anna.Lind@OralCare.se ")).toBe("anna.lind@oralcare.se");
+    expect(normalizeEmail("Kim@Agency.example")).toBe("kim@agency.example");
   });
 
-  it("refuses other domains, subdomains and lookalikes", () => {
+  it("marks only the group's own domains as the group, not subdomains or lookalikes", () => {
+    expect(isGroupEmail("ola@octannklinikker.no")).toBe(true);
     for (const email of ["a@gmail.com", "a@mail.oralcare.se", "a@oralcare.se.evil.com", "a@oralcare.sex"]) {
-      expect(isAllowedEmail(email, { trackingOnlyInvitation: false }), email).toBeNull();
+      expect(isGroupEmail(email), email).toBe(false);
     }
-  });
-
-  it("lets an outside address in only with an invitation that gives Tracking Framework alone", () => {
-    expect(isAllowedEmail("kim@agency.example", { trackingOnlyInvitation: true })).toBe("kim@agency.example");
-    expect(isAllowedEmail("kim@agency.example", { trackingOnlyInvitation: false })).toBeNull();
   });
 
   it("refuses plus signs, quotes, non-ASCII and malformed addresses", () => {
@@ -57,18 +49,17 @@ const viewer = (views: ViewKey[], markets: MarketCode[], extra: Partial<Viewer> 
   firstName: "A",
   lastName: "B",
   role: "viewer",
-  external: false,
   views,
   markets,
   ...extra,
 });
 
 describe("permissions", () => {
-  it("opens only the ticked views, and an external account only Tracking Framework", () => {
+  it("opens only the ticked views, also for an address outside the group", () => {
     expect(canOpenView(viewer(["nps"], ["se"]), "nps")).toBe(true);
     expect(canOpenView(viewer(["nps"], ["se"]), "availability")).toBe(false);
-    const agency = viewer(["tracking-framework", "availability"], ["se"], { external: true });
-    expect(openViews(agency)).toEqual(["tracking-framework"]);
+    const agency = viewer(["tracking-framework", "availability"], ["se"], { email: "kim@agency.example" });
+    expect(openViews(agency)).toEqual(["availability", "tracking-framework"]);
   });
 
   it("starts on the first view in menu order, in the chosen market if it is theirs", () => {

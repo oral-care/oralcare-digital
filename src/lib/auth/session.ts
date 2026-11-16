@@ -46,11 +46,10 @@ async function loadViewer(userId: string): Promise<Viewer | null> {
     first_name: string;
     last_name: string;
     role: Role;
-    external: boolean;
     views: ViewKey[] | null;
     markets: string[] | null;
   }>(
-    `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.external,
+    `SELECT u.id, u.email, u.first_name, u.last_name, u.role,
             (SELECT array_agg(v.view ORDER BY v.view) FROM auth.user_view v WHERE v.user_id = u.id) AS views,
             (SELECT array_agg(c.code ORDER BY c.code) FROM auth.user_market m JOIN core.country c ON c.id = m.country_id
               WHERE m.user_id = u.id) AS markets
@@ -65,7 +64,6 @@ async function loadViewer(userId: string): Promise<Viewer | null> {
     firstName: row.first_name,
     lastName: row.last_name,
     role: row.role,
-    external: row.external,
     views: row.views ?? [],
     markets: (row.markets ?? []).filter(isMarketCode) as MarketCode[],
   };

@@ -139,7 +139,7 @@ describe("the database as a whole", () => {
     expect(result.rows).toEqual([]);
   });
 
-  it("stops an external account from getting any view but Tracking Framework", async () => {
+  it("lets an external account have any view, and keeps the views' flag in step with the account", async () => {
     const owner = await as("owner");
     await owner.query(
       `INSERT INTO auth.users (id, name, email, first_name, last_name, external)
@@ -148,11 +148,9 @@ describe("the database as a whole", () => {
     await owner.query(
       `INSERT INTO auth.user_view (user_id, view, external) VALUES ('ext-1', 'tracking-framework', true)`,
     );
-    await expect(
-      owner.query(
-        `INSERT INTO auth.user_view (user_id, view, external) VALUES ('ext-1', 'availability', true)`,
-      ),
-    ).rejects.toMatchObject({ code: "23514" });
+    await owner.query(
+      `INSERT INTO auth.user_view (user_id, view, external) VALUES ('ext-1', 'availability', true)`,
+    );
     await expect(
       owner.query(`INSERT INTO auth.user_view (user_id, view, external) VALUES ('ext-1', 'nps', false)`),
     ).rejects.toMatchObject({ code: "23503" });

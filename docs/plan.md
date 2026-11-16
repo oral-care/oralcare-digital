@@ -76,7 +76,7 @@ Appen byggs från början för Vercel Pro och ett privat repo, men driftsätts f
 
 - **Bara inbjudna.** Ingen kan skapa ett konto själv.
 - **Koncernens domäner:** `oralcare.se` (Sverige), `octannklinikker.no` (Norge), `oralcare.dk` (Danmark) och `oralcare.nl` (Nederländerna). Listan ligger i koden och bekräftas av dig i steg 3, eftersom du hanterar koncernens domäner.
-- **Externa byråer** kan bjudas in med en adress utanför koncernens domäner, men bara till Tracking Framework. Ett sådant konto kan aldrig få en vy med data om kliniker eller patienter. Det kontrolleras när inbjudan skapas, vid varje anrop och av en regel i databasen.
+- **Adresser utanför koncernens domäner,** till exempel byråer, kan bjudas in på samma sätt som koncernens adresser. De får de vyer, marknader och den roll admin bockar i, även All views. Kontot markeras som externt.
 - **Andra adresser** får samma svar som inbjudna, men ingen kod. Då kan ingen skicka koder till påhittade adresser.
 
 ### 3.2 Användarna vid start
@@ -222,7 +222,7 @@ Booking statistics, NPS, Funnel, Tracking Framework och Monitoring visas i menyn
 - Texten "Who can sign in, which views they can open and which markets they see." och knappen "+ Invite user".
 - Lista: User (initialer, namn och e-post), Access ("All views" eller vyerna), Markets ("All markets" eller marknaderna), Role, Last sign-in (till exempel "Today 09:20", "Mon 26 Oct" eller "Invited, not signed in yet"), och en penna och en papperskorg per rad. Den egna raden saknar papperskorg, men pennan står på samma plats.
 - Formuläret "Invite user" och "Edit {namn}" öppnas ovanför listan: First name, Last name, E-mail (låst och grå vid ändring), Access och Markets som kryssrutor där "All" bockar i eller ur alla och är ibockad exakt när alla är det, Role (Viewer eller Admin, låst för den egna rollen med texten "You can't change your own role.") och knapparna Cancel och Send invitation eller Save changes. Domänen i e-postadressen bockar i sin marknad.
-- **Kontroller innan något sparas,** med ett felmeddelande vid fältet: förnamn, efternamn och en giltig e-postadress krävs, minst en vy och en marknad krävs, en adress utanför koncernens domäner får bara Tracking Framework, och en adress som redan har ett konto eller en inbjudan går inte att bjuda in igen.
+- **Kontroller innan något sparas,** med ett felmeddelande vid fältet: förnamn, efternamn och en giltig e-postadress krävs, minst en vy och en marknad krävs, och en adress som redan har ett konto eller en inbjudan går inte att bjuda in igen.
 - Ta bort öppnar en dialog: "Remove {namn}?", texten "{namn} is signed out right away and can no longer sign in. To give access again, invite {adress} again.", Cancel och Remove user. Markören börjar på Cancel. Esc och klick utanför stänger.
 
 ### 4.10 Övriga sidor
@@ -684,7 +684,7 @@ Giltighetstider får inte överlappa (exclusion constraints med `btree_gist`). I
 | `email_suppression`                              | Adresser med permanenta studsar eller klagomål                                                                                                     |
 | `audit_event`                                    | Loggen: händelse, vem, vem det gällde (id och en kopia av adressen), före och efter, och tid                                                       |
 
-- **Externa konton** får bara vyn `tracking-framework`, och databasen tvingar det: `users` har `UNIQUE (id, external)`, `user_view` har kolumnen `external` med en främmande nyckel till `users (id, external)` och `ON UPDATE CASCADE`, och regeln `CHECK (NOT external OR view = 'tracking-framework')`.
+- **`external`** på `users` visar att adressen ligger utanför koncernens domäner. Den styr inte vilka vyer kontot får. `user_view` har kvar kolumnen `external` med en främmande nyckel till `users (id, external)` och `ON UPDATE CASCADE`. Regeln `CHECK (NOT external OR view = 'tracking-framework')` är borttagen.
 - `sessions`, `accounts`, `user_view` och `user_market` har `ON DELETE CASCADE` från `users`. `audit_event` har ingen främmande nyckel, så loggen finns kvar när en användare tas bort.
 - Better Auth lägger tabellerna i ett eget schema med Drizzle-adapterns `schemaName` (ett fel kring det rättades i 1.7.14). Ett test i steg 3 bekräftar det. Annars ligger tabellerna i `public` med rättigheter per tabell.
 
@@ -750,8 +750,8 @@ Kolumnerna heter efter källans roll (`web`, `epr`), inte efter oralcare.se och 
 
 - **Bibliotek:** Better Auth, exakt pinnad, med pluginet `emailOTP` men utan admin-pluginet. Rollen är ett eget fält på `users`, och behörigheterna kontrolleras i `src/lib/auth/permissions.ts`. oralcare.se har BankID för patienter, vilket inte passar anställda.
 - **Kod:** `emailOTP({ otpLength: 8, expiresIn: 600, allowedAttempts: 3, storeOTP: "encrypted", resendStrategy: "reuse" })`. Inga lösenord och inga inloggningslänkar, eftersom Microsoft 365 Safe Links kan öppna en länk före användaren. Alla val finns i Better Auth 1.7.14. Vid nytt utskick skickas samma kod, som då gäller 10 minuter från det nya mejlet. Försöken räknas inte om, så högst 3 försök per kod gäller.
-- **Vem som får kod:** bara typen `sign-in`, och bara när `isAllowedEmail()` godkänner adressen och den har ett konto eller en inbjudan. Annars skickas inget och svaret är detsamma. Mejlet skickas i `after()`, så att svarstiden också är densamma.
-- **`isAllowedEmail()`:** gemener, exakt en av koncernens domäner eller en inbjudan som bara gäller Tracking Framework, inget plustecken, inga citattecken och bara ASCII.
+- **Vem som får kod:** bara typen `sign-in`, och bara när `normalizeEmail()` godkänner adressen och den har ett konto eller en inbjudan. Annars skickas inget och svaret är detsamma. Mejlet skickas i `after()`, så att svarstiden också är densamma.
+- **`normalizeEmail()`:** gemener, inget plustecken, inga citattecken och bara ASCII. Domänen spelar ingen roll, eftersom bara den som har ett konto eller en inbjudan får en kod.
 - **Första inloggningen:** `databaseHooks.user.create.before` släpper bara igenom en adress med en oanvänd inbjudan och sätter namn, roll och om kontot är externt. `after` kopierar vyer och marknader från inbjudan och markerar den använd, i en egen transaktion som går att köra igen. Better Auth lägger inte skapandet av användaren och krokarna i samma transaktion, så avbryts en första inloggning halvvägs fyller nästa läsning av sessionen i det som saknas. `databaseHooks.session.create.after` sätter `last_sign_in_at`.
 - **Allt annat är avstängt:** `src/app/api/auth/[...all]/route.ts` släpper bara igenom `POST sign-in/email-otp`, `POST email-otp/send-verification-otp`, `GET get-session` och `POST sign-out`. Allt annat ger 404, även sådant som tillkommer vid en uppgradering. Inbjudan, ändring och borttagning är egna server actions.
 - **Telemetri:** Better Auths telemetri är avstängd. Cookies har prefixet `oc`.
@@ -1041,7 +1041,7 @@ Körs två gånger, med `TZ=UTC` och `TZ=America/New_York`, så att inget beror 
 - **Month ahead:** texten för många kliniker, en klinik, en region och inga tider.
 - **Filtren:** zod-schemat för adressen, regioner som väljer kliniker, och felaktiga värden.
 - **Behörigheter:** varje kombination av vy, marknad och roll, och externa konton.
-- **`isAllowedEmail()`** och spärrarnas regler.
+- **`normalizeEmail()`** och spärrarnas regler.
 - **Mejlen:** ögonblicksbilder av HTML och text för varje mejl, varje larmtyp och varje rad i "Needs attention", inga personuppgifter i länkarna, och ingen em dash.
 
 ### 15.2 Integrationstester (Vitest mot Postgres i CI)
@@ -1061,7 +1061,7 @@ Körs två gånger, med `TZ=UTC` och `TZ=America/New_York`, så att inget beror 
 - **Inbjudan och studsar:** en inbjudan sparas inte när Resend inte tar emot mejlet, och en ny inbjudan tar bort spärren för en adress som har studsat.
 - **Admins adresser:** insamlaren får adresserna via funktionen men kan inte läsa något annat i `auth`.
 - **Användare:** inbjudan, första inloggning som skapar användaren med vyer och marknader, en adress utan inbjudan som inte kan skapas, ändring, borttagning som gör en skickad kod ogiltig, den sista admin och två admins samtidigt.
-- **Externa konton:** databasen nekar alla vyer utom `tracking-framework`.
+- **Externa konton:** en inbjudan med alla vyer till en adress utanför koncernens domäner sparas, och den första inloggningen ger kontot alla vyerna.
 - **Integritet:** en fixtur med recensionstext, namn och kontaktuppgifter. Inget av det hamnar i databasen, loggarna eller larmen.
 
 ### 15.3 End-to-end (Playwright)
@@ -1069,7 +1069,7 @@ Körs två gånger, med `TZ=UTC` och `TZ=America/New_York`, så att inget beror 
 Mot `next build` och `next start` med en testdatabas med påhittad data, och en kodmottagare som bara finns när `APP_ENV=test`: mejlen går då till `src/lib/auth/test-inbox.ts` i stället för till Resend, och testerna läser koden från `/api/test/inbox`, som svarar 404 i alla andra lägen. `tests/e2e/server.ts` startar en egen Postgres med rollerna, migreringarna och påhittade inbjudningar, och appen med `next start`. Varje test har en egen IP-adress i `x-forwarded-for`, så att spärrarna per IP-adress går att testa.
 
 - **Logga in:** e-post, kod, val av marknad, direkt in med en marknad, fel kod, spärr, och samma svar för en adress som inte är inbjuden.
-- **Behörighet:** menyn visar bara användarens vyer, och en länk till en annan vy eller marknad skickar till startsidan. En klinik från en annan marknad ger 404. Ett externt konto når bara Tracking Framework.
+- **Behörighet:** menyn visar bara användarens vyer, och en länk till en annan vy eller marknad skickar till startsidan. En klinik från en annan marknad ger 404. Ett externt konto når de vyer det har fått, även Availability.
 - **Users:** bjuda in, ändra och ta bort, låst e-post, låst egen roll och dialogen.
 - **Sidorna:** korten, Month ahead, grafen, tabellerna, sortering, filtren (region väljer kliniker, kalendern för Custom period), förklaringarna vid hovring, klinikens sida, Patient vs Muntra, Coming soon, `/`, `/{marknad}` och `/no-access`.
 - **Bannern** när datan är för gammal.
@@ -1256,7 +1256,7 @@ Under fas 1 har ingen tjänst ett betalkort som debiteras automatiskt, och det k
 flowchart LR
   subgraph users["Användare"]
     staff["Admins och viewers<br/>koncernens domäner"]
-    agency["Externa byråer<br/>bara Tracking Framework"]
+    agency["Externa adresser<br/>de vyer admin väljer"]
   end
   dns["DNS oralcaregroup.com<br/>hos webb.se"]
   subgraph vercel["Vercel, teamet oralcare, fra1<br/>Hobby nu, Pro efter bytet"]
