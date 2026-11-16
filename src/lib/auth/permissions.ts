@@ -4,8 +4,9 @@ import { MODULES } from "@/lib/modules";
 
 // Who may open what (plan 3.3 and 11). A viewer reads the views and markets an
 // admin has ticked; an admin also invites, changes and removes users, in every
-// market. External accounts only ever get Tracking Framework. The data access
-// layer, the server actions and the pages all use these rules. Pure module.
+// market. An address outside the group gets its views like anyone else. The
+// data access layer, the server actions and the pages all use these rules.
+// Pure module.
 
 export type Viewer = {
   id: string;
@@ -13,17 +14,13 @@ export type Viewer = {
   firstName: string;
   lastName: string;
   role: Role;
-  external: boolean;
   views: ViewKey[];
   markets: MarketCode[];
 };
 
 export const isAdmin = (viewer: Viewer) => viewer.role === "admin";
 
-export function canOpenView(viewer: Viewer, view: ViewKey): boolean {
-  if (viewer.external && view !== "tracking-framework") return false;
-  return viewer.views.includes(view);
-}
+export const canOpenView = (viewer: Viewer, view: ViewKey) => viewer.views.includes(view);
 
 export const canOpenMarket = (viewer: Viewer, market: MarketCode) => viewer.markets.includes(market);
 

@@ -37,7 +37,6 @@ const admin: Viewer = {
   firstName: "Ada",
   lastName: "Admin",
   role: "admin",
-  external: false,
   views: ["availability"],
   markets: ["se"],
 };
@@ -119,15 +118,11 @@ describe("inviting", () => {
     expect(await rows("SELECT 1 FROM auth.audit_event")).toHaveLength(0);
   });
 
-  it("refuses a taken address, missing fields and an outside address with data views", async () => {
+  it("refuses a taken address and missing fields", async () => {
     expect(await invite("ada@oralcare.se")).toMatchObject({ errors: { email: "users.errors.taken" } });
     expect(await invite("sam@oralcare.se", { firstName: " ", views: [] })).toMatchObject({
       errors: { firstName: "users.errors.firstName", views: "users.errors.views" },
     });
-    expect(await invite("kim@agency.example")).toMatchObject({
-      errors: { views: "users.errors.externalViews" },
-    });
-    expect(await invite("kim@agency.example", { views: ["tracking-framework"] })).toEqual({ ok: true });
   });
 
   it("lifts the suppression of an address an admin invites again", async () => {
@@ -176,13 +171,21 @@ describe("the first sign-in", () => {
     expect(await openInvitation(app, "sam@oralcare.se")).toBeNull();
   });
 
-  it("can never give an outside account a data view, also directly in the database", async () => {
+  it("gives an address outside the group every view of its invitation", async () => {
+    const views = [
+      "availability",
+      "booking-statistics",
+      "nps",
+      "funnel",
+      "tracking-framework",
+      "monitoring",
+    ] as const;
+    expect(await invite("kim@agency.example", { views: [...views] })).toEqual({ ok: true });
     await createUser("kim", "kim@agency.example", "viewer", true);
-    await expect(
-      owner.query(
-        "INSERT INTO auth.user_view (user_id, view, external) VALUES ('kim', 'availability', true)",
-      ),
-    ).rejects.toMatchObject({ code: "23514" });
+    expect(await acceptInvitation(app, "kim", "kim@agency.example")).toBe(true);
+    expect(await rows("SELECT view FROM auth.user_view WHERE user_id = 'kim' ORDER BY view")).toEqual(
+      [...views].sort().map((view) => ({ view })),
+    );
   });
 });
 
@@ -302,6 +305,16 @@ describe("who gets a code", () => {
     ]);
     expect(await rows("SELECT count::int FROM core.email_send WHERE type = 'sign-in'")).toEqual([
       { count: 1 },
+    ]);
+  });
+
+  it("sends to an address outside the group with an invitation for a data view", async () => {
+    expect(await deliver("kim@agency.example")).toBe("not_allowed");
+    expect(await invite("kim@agency.example", { views: ["availability"] })).toEqual({ ok: true });
+    sent = [];
+    expect(await deliver("kim@agency.example")).toBe("sent");
+    expect(sent).toEqual([
+      { key: null, to: ["kim@agency.example"], subject: "Your sign-in code for Oral Care Digital" },
     ]);
   });
 

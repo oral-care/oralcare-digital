@@ -4,7 +4,7 @@ import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
 import type { AdminEvent } from "@/lib/audit";
-import { isGroupEmail, normalizeEmail } from "@/lib/auth/allowed-email";
+import { normalizeEmail } from "@/lib/auth/allowed-email";
 import { isAdmin, type Viewer } from "@/lib/auth/permissions";
 import { ROLES, VIEW_KEYS } from "@/lib/db/schema/auth";
 import { invitationEmail } from "@/lib/email/emails";
@@ -46,10 +46,6 @@ function validate(
   }
   return { ok: false, result: { ok: false, errors } };
 }
-
-/** An address outside the group may only have Tracking Framework (plan 3.1). */
-const externalOk = (email: string, views: string[]) =>
-  isGroupEmail(email) || (views.length === 1 && views[0] === "tracking-framework");
 
 async function audit(
   db: Pick<PoolClient, "query">,
@@ -112,7 +108,6 @@ export async function inviteUser(
   const email = normalizeEmail(input.email);
   if (!email) return fail("email", "email");
   const { firstName, lastName, views, markets, role } = checked.value;
-  if (!externalOk(email, views)) return fail("views", "externalViews");
 
   return attempt(pool, async (client) => {
     const taken = await client.query(
@@ -185,7 +180,6 @@ export async function updateUser(pool: Pool, actor: Viewer, id: string, input: A
       );
       const before = found.rows[0];
       if (!before) return fail("form", "gone");
-      if (!externalOk(before.email, views)) return fail("views", "externalViews");
       await client.query(
         "UPDATE auth.invitation SET first_name = $2, last_name = $3, role = $4, views = $5, markets = $6 WHERE id = $1",
         [invitationId, firstName, lastName, role, views, markets],
@@ -217,7 +211,6 @@ export async function updateUser(pool: Pool, actor: Viewer, id: string, input: A
     if (!user) return fail("form", "gone");
     if (id === actor.id && role !== user.role) return fail("role", "ownRole");
     if (user.role === "admin" && role !== "admin" && admins.length <= 1) return fail("role", "lastAdmin");
-    if (!externalOk(user.email, views)) return fail("views", "externalViews");
 
     const beforeAccess = await client.query<{ views: string[] | null; markets: string[] | null }>(
       `SELECT (SELECT array_agg(view ORDER BY view) FROM auth.user_view WHERE user_id = $1) AS views,

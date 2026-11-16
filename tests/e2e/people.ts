@@ -23,7 +23,7 @@ export const PEOPLE = {
     first: "Kim",
     last: "Agency",
     role: "viewer",
-    views: ["tracking-framework"],
+    views: "all",
     markets: ["se"],
   },
   noViews: {

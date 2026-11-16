@@ -28,12 +28,17 @@ test("a Coming soon module shows its name and that it is being built", async ({ 
   await expect(page).toHaveTitle("NPS · Oral Care Digital");
 });
 
-test("an outside agency reaches Tracking Framework only", async ({ browser }) => {
+test("an address outside the group reaches all the views it was given", async ({ browser }) => {
   const page = await signedInPage(browser, "agency");
   await page.goto("/");
+  await expect(page).toHaveURL(/\/se\/availability$/);
+  for (const name of ["Clinics", "NPS", "Tracking Framework"]) {
+    await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
+  }
+  await page.goto("/se/tracking-framework");
   await expect(page).toHaveURL(/\/se\/tracking-framework$/);
-  await page.goto("/se/availability");
-  await expect(page).toHaveURL(/\/se\/tracking-framework$/);
+  await page.goto("/no/availability");
+  await expect(page).toHaveURL(/\/se\/availability$/);
 });
 
 test("the market switcher shows markets without access as locked", async ({ browser }) => {

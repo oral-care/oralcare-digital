@@ -5,14 +5,14 @@ import type { Pool } from "pg";
 import { signInCodeEmail } from "@/lib/email/emails";
 import { sendBatch, type Fetcher } from "@/lib/email/resend";
 
-import { isAllowedEmail } from "./allowed-email";
+import { normalizeEmail } from "./allowed-email";
 import { allowCodeRequest } from "./throttle";
 
-// Who gets a sign-in code (plan 3.1 and 11): only an allowed address with an
-// account or an invitation, not suppressed after a bounce, within the limits
-// and the day's e-mail quota, and only while sign-in isn't paused. Everyone
-// else gets the same answer and no code. Runs after the response is sent, so
-// the answer takes as long either way.
+// Who gets a sign-in code (plan 3.1 and 11): only a plain address, from any
+// domain, with an account or an invitation, not suppressed after a bounce,
+// within the limits and the day's e-mail quota, and only while sign-in isn't
+// paused. Everyone else gets the same answer and no code. Runs after the
+// response is sent, so the answer takes as long either way.
 
 export type DeliveryResult =
   | "sent"
@@ -33,15 +33,14 @@ export async function deliverCode(
   );
   if (paused.rows[0]?.value === true) return "paused";
 
-  const account = await pool.query<{ external: boolean | null; tracking_only: boolean | null }>(
-    `SELECT (SELECT external FROM auth.users WHERE email = $1) AS external,
-            (SELECT views = array['tracking-framework'] FROM auth.invitation WHERE email = $1 AND used_at IS NULL) AS tracking_only`,
-    [input.email],
-  );
-  const { external, tracking_only } = account.rows[0] ?? { external: null, tracking_only: null };
-  if (external === null && tracking_only === null) return "not_allowed";
-  const email = isAllowedEmail(input.email, { trackingOnlyInvitation: Boolean(external || tracking_only) });
+  const email = normalizeEmail(input.email);
   if (!email) return "not_allowed";
+  const account = await pool.query<{ known: boolean }>(
+    `SELECT EXISTS (SELECT 1 FROM auth.users WHERE email = $1)
+         OR EXISTS (SELECT 1 FROM auth.invitation WHERE email = $1 AND used_at IS NULL) AS known`,
+    [email],
+  );
+  if (!account.rows[0]?.known) return "not_allowed";
 
   const suppressed = await pool.query("SELECT 1 FROM auth.email_suppression WHERE email = $1", [email]);
   if ((suppressed.rowCount ?? 0) > 0) return "suppressed";

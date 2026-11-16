@@ -121,8 +121,7 @@ export const invitation = auth.table(
   (t) => [check("invitation_role", sql`${t.role} in ('viewer', 'admin')`)],
 );
 
-// External accounts may only ever have tracking-framework, enforced here and
-// not only in code (plan 10.2).
+// external follows the user's flag (plan 10.2). It no longer limits the views.
 export const userView = auth.table(
   "user_view",
   {
@@ -136,7 +135,6 @@ export const userView = auth.table(
       .onUpdate("cascade")
       .onDelete("cascade"),
     check("user_view_key", sql`${t.view} in (${viewKeyList})`),
-    check("user_view_external_only_tracking", sql`not ${t.external} or ${t.view} = 'tracking-framework'`),
   ],
 );
 

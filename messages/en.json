@@ -469,7 +469,6 @@
       "email": "Enter a valid work e-mail address.",
       "taken": "This address already has an account or an invitation.",
       "views": "Choose at least one view.",
-      "externalViews": "An address outside the group can only get Tracking Framework.",
       "markets": "Choose at least one market.",
       "role": "Choose a role.",
       "ownRole": "You can't change your own role.",
